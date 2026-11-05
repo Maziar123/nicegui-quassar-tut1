@@ -28,5 +28,12 @@ jobs:
         run: uv sync --locked
       - name: Chromium for the browser tests
         run: uv run playwright install --with-deps chromium
+      - name: Mermaid from npm, so the browser tests also draw diagrams (version pinned in content/site.toml)
+        run: |
+          v=$(uv run python -c "import tomllib; u = tomllib.load(open('content/site.toml', 'rb'))['libs']['mermaid']; print(u.split('mermaid@')[1].split('/')[0])")
+          mkdir -p "$RUNNER_TEMP/npm/mermaid"
+          npm pack "mermaid@$v" --pack-destination "$RUNNER_TEMP"
+          tar -xzf "$RUNNER_TEMP/mermaid-$v.tgz" -C "$RUNNER_TEMP/npm/mermaid" --strip-components=1
+          echo "XREF_NPM_DIR=$RUNNER_TEMP/npm" >> "$GITHUB_ENV"
       - name: just ci (lint, requirements, tests, browser tests, docs up to date)
         run: uv run just ci

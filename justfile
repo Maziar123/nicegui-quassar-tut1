@@ -77,7 +77,12 @@ check-docs:
 # everything CI runs
 ci: lint check-reqs test test-browser check-docs
 
-# update all pinned packages, then rebuild the lock and requirements.txt
+# update the indirect packages in uv.lock, then requirements.txt, screenshots and docs/.
+# Direct packages are pinned with == in pyproject.toml: to move one, edit its version there first.
 upgrade:
     uv lock --upgrade
     just reqs
+    uv sync
+    just shoot
+    just build
+    @echo "Done. Look at the site (./run serve) and at any 'differs' message above before committing."

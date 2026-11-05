@@ -25,6 +25,8 @@ CONTENT = ROOT / 'content'
 I18N = HERE / 'i18n'
 LEXERS = {'.html': HtmlLexer, '.py': PythonLexer}
 LANG_LABEL = {'.html': 'HTML', '.py': 'Python'}
+# Pygments token classes get a prefix: its short names (sr, no, cp, nt...) clashed with site classes
+TOKEN_PREFIX = 'tk-'
 LANG_CODE = re.compile(r'[a-z]{2,3}(-[A-Za-z0-9]{2,8})?')
 
 
@@ -53,25 +55,30 @@ def merge(base, over):
 
 
 def read_toml(path: Path, lang: str, default: str) -> dict:
-    """Read path, then merge path.<lang>.toml over it when lang is not the default."""
+    """Read path, then merge path.<lang>.toml over it when lang is not the default.
+    A syntax error names the file it is in (the translation, not the English file)."""
+    data = parse_toml(path)
+    tr = path.with_name(f'{path.stem}.{lang}.toml')
+    if lang != default and tr.is_file():
+        data = merge(data, parse_toml(tr))
+    return data
+
+
+def parse_toml(path: Path) -> dict:
     try:
-        data = tomllib.loads(path.read_text())
-        tr = path.with_name(f'{path.stem}.{lang}.toml')
-        if lang != default and tr.is_file():
-            data = merge(data, tomllib.loads(tr.read_text()))
+        return tomllib.loads(path.read_text(encoding='utf-8'))
     except tomllib.TOMLDecodeError as e:
         raise ContentError(f'{rel(path)}: {e}') from None
-    return data
 
 
 def strings(lang: str, default: str) -> SimpleNamespace:
     """UI strings as attributes (t.copy_code). A missing key falls back to the default language."""
-    t = tomllib.loads((I18N / f'{default}.toml').read_text())
+    t = tomllib.loads((I18N / f'{default}.toml').read_text(encoding='utf-8'))
     if lang != default:
         f = I18N / f'{lang}.toml'
         if not f.is_file():
             raise ContentError(f'no UI strings for language {lang!r}: add tutorial/i18n/{lang}.toml')
-        t.update(tomllib.loads(f.read_text()))
+        t.update(tomllib.loads(f.read_text(encoding='utf-8')))
     return SimpleNamespace(**t)
 
 
@@ -165,7 +172,9 @@ class Code:
     def rows(self) -> list[str]:
         """Highlighted HTML, one string per line. Pygments closes and reopens spans at line ends.
         stripnl=False keeps leading blank lines, so row n is always line n."""
-        html = highlight(self.text, LEXERS[self.ext](stripnl=False), HtmlFormatter(nowrap=True))
+        html = highlight(
+            self.text, LEXERS[self.ext](stripnl=False), HtmlFormatter(nowrap=True, classprefix=TOKEN_PREFIX)
+        )
         rows = [r or ' ' for r in html.rstrip('\n').split('\n')]
         if len(rows) != self.nlines:
             raise ContentError(f'{self.file}: highlighting gave {len(rows)} rows for {self.nlines} lines')
@@ -282,7 +291,7 @@ class Section:
 
 # ------------------------------------------------------------------ loading
 def load_site(lang: str | None = None) -> Site:
-    raw = tomllib.loads((CONTENT / 'site.toml').read_text())
+    raw = parse_toml(CONTENT / 'site.toml')
     languages = raw.get('languages', ['en'])
     # Codes become folder names that the build deletes and rewrites (docs/<code>/), so be strict.
     bad = [c for c in languages if not isinstance(c, str) or not LANG_CODE.fullmatch(c) or c in ('steps', 'assets')]
@@ -320,8 +329,14 @@ def step_dirs(section_dir: Path | None = None) -> list[Path]:
 
 
 def column_file(step_dir: Path, cid: str) -> Path | None:
-    """The runnable file of one column: <id>*.html or <id>*.py (first match)."""
-    return next((f for f in sorted(step_dir.glob(f'{cid}*.*')) if f.suffix in LEXERS), None)
+    """The runnable file of one column: <id>.html / <id>.py, or <id>_<anything> (nicegui_app.py).
+    Exact rule, so vue-old.html or vuex.html is never taken for vue.html."""
+    found = [
+        f
+        for f in sorted(step_dir.iterdir())
+        if f.is_file() and f.suffix in LEXERS and (f.stem == cid or f.stem.startswith(cid + '_'))
+    ]
+    return next((f for f in found if f.stem == cid), found[0] if found else None)
 
 
 def load_sections(site: Site) -> list[Section]:
@@ -355,7 +370,7 @@ def load_step(tdir: Path, num: str, site: Site) -> Step:
     for cid in site.column_ids:
         f = column_file(tdir, cid)
         if f:
-            code[cid] = Code(file=f.name, ext=f.suffix, text=f.read_text())
+            code[cid] = Code(file=f.name, ext=f.suffix, text=f.read_text(encoding='utf-8'))
 
     cross = []
     for n, x in enumerate(d.get('cross', []), 1):
@@ -402,7 +417,7 @@ def load_step(tdir: Path, num: str, site: Site) -> Step:
             continue
         tr = f.with_name(f'{f.stem}.{site.lang}.md')
         src = tr if site.lang != site.default_lang and tr.is_file() else f
-        blocks.append(MdBlock(name=f.stem, text=src.read_text()))
+        blocks.append(MdBlock(name=f.stem, text=src.read_text(encoding='utf-8')))
     return Step(
         num=num,
         id=f's{s}-{k}',
@@ -411,7 +426,7 @@ def load_step(tdir: Path, num: str, site: Site) -> Step:
         dir=tdir,
         template=f'{tdir.relative_to(CONTENT).as_posix()}/step.html' if (tdir / 'step.html').is_file() else 'step.html',
         intro=d['intro'],
-        picture=re.sub(r'<\?xml.*?\?>', '', pic.read_text()).strip() if pic.is_file() else '',
+        picture=re.sub(r'<\?xml.*?\?>', '', pic.read_text(encoding='utf-8')).strip() if pic.is_file() else '',
         picture_caption=d.get('picture_caption', ''),
         try_it=d.get('try_it', ''),
         notes={cid: Note(**v) for cid, v in d.get('columns', {}).items()},
@@ -430,13 +445,15 @@ def load_shots(tdir: Path, col_ids: list[str]) -> Shots | None:
     res = tdir / 'shots' / 'result.json'
     if not res.is_file():
         return None
-    r = json.loads(res.read_text())
+    r = json.loads(res.read_text(encoding='utf-8'))
     files = {cid: tdir / 'shots' / f'{cid}.png' for cid in col_ids if (tdir / 'shots' / f'{cid}.png').is_file()}
-    stale = []
-    for cid, digest in r.get('sources', {}).items():
+    sources, stale = r.get('sources', {}), []
+    for cid in col_ids:
         f = column_file(tdir, cid)
-        if f is None or file_hash(f) != digest:
-            stale.append(cid)
+        if cid in sources and (f is None or file_hash(f) != sources[cid]):
+            stale.append(cid)  # changed or removed since the screenshot
+        elif cid not in sources and f is not None:
+            stale.append(cid)  # added after the screenshots were taken
     if 'sources' not in r:  # made before shoot.py recorded hashes: cannot tell, so say so
         stale = list(files)
     diff = r['diff_pixels']

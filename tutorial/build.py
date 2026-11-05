@@ -18,6 +18,7 @@ does not own is refused. Content loading lives in model.py; this file only rende
 
 import argparse
 import json
+import posixpath
 import re
 import shutil
 import sys
@@ -94,7 +95,25 @@ class Links:
         return dict(href=self.href, step_link=self.step_link, step_page_href=self.step_page, assets=assets)
 
 
-def build_language(lang: str, out_root: Path, env: Environment) -> list[Path]:
+def alternates(site, names: dict[str, str], page: str) -> list[dict]:
+    """The same page in every language (hreflang links, language switcher); [] for a one-language site.
+    page is relative to a language root, e.g. 'index.html' or 'steps/1-1.html'."""
+    if len(site.languages) < 2:
+        return []
+    root = {lang: '' if lang == site.default_lang else f'{lang}/' for lang in site.languages}
+    here = posixpath.dirname(root[site.lang] + page) or '.'
+    return [
+        {
+            'lang': lang,
+            'name': names[lang],
+            'current': lang == site.lang,
+            'href': posixpath.relpath(root[lang] + page, here),
+        }
+        for lang in site.languages
+    ]
+
+
+def build_language(lang: str, out_root: Path, env: Environment, names: dict[str, str]) -> list[Path]:
     site = model.load_site(lang)
     t = model.strings(lang, site.default_lang)
     sections = model.load_sections(site)
@@ -143,9 +162,11 @@ def build_language(lang: str, out_root: Path, env: Environment) -> list[Path]:
             **common,
             **links.ctx(assets),
             page_id='summary',
+            alternates=alternates(site, names, 'index.html'),
             step_html=embedded,
             xref_rows=[(st, x) for st in steps for x in st.cross],
-        )
+        ),
+        encoding='utf-8',
     )
     written.append(out / 'index.html')
 
@@ -156,12 +177,13 @@ def build_language(lang: str, out_root: Path, env: Environment) -> list[Path]:
             **common,
             **links.ctx(assets),
             page_id=st.id,
+            alternates=alternates(site, names, f'steps/{st.slug}.html'),
             step=st,
             sec=st.section,
             step_html={st.id: render_step(st, links, 'page', assets)},
         )
         f = out / 'steps' / f'{st.slug}.html'
-        f.write_text(page)
+        f.write_text(page, encoding='utf-8')
         written.append(f)
 
     if is_default:
@@ -181,7 +203,7 @@ def owned_entries(out_root: Path) -> list[str]:
     """Top-level names in out_root that an earlier build wrote."""
     f = out_root / MANIFEST
     if f.is_file():
-        names = json.loads(f.read_text()).get('owned', [])
+        names = json.loads(f.read_text(encoding='utf-8')).get('owned', [])
     elif out_root == DEFAULT_OUT:
         names = LEGACY_OWNED
     else:
@@ -210,25 +232,44 @@ def build(out_root: Path) -> list[Path]:
             shutil.copyfile(ASSETS / name, tmp / 'assets' / name)
         env = make_env()
         written = []
+        names = {lang: model.strings(lang, site.default_lang).name for lang in site.languages}
         for lang in site.languages:
-            pages = build_language(lang, tmp, env)
+            pages = build_language(lang, tmp, env, names)
             print(f'[{lang}] {len(pages)} pages')
             written += [out_root / f.relative_to(tmp) for f in pages]
         # everything rendered: swap it in
-        new = sorted(p.name for p in tmp.iterdir())
-        out_root.mkdir(exist_ok=True)
-        for name in set(owned_entries(out_root)) | set(new):
-            target = out_root / name
-            if target.is_dir() and not target.is_symlink():
-                shutil.rmtree(target)
-            elif target.exists() or target.is_symlink():
-                target.unlink()
-        for name in new:
-            shutil.move(tmp / name, out_root / name)
-        (out_root / MANIFEST).write_text(json.dumps({'owned': new}, indent=2) + '\n')
+        swap_in(tmp, out_root, sorted(p.name for p in tmp.iterdir()))
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     return written
+
+
+def swap_in(new_dir: Path, out_root: Path, new: list[str]):
+    """Replace the owned entries of out_root with those in new_dir. The old entries are moved aside
+    first and put back if anything fails half-way (a locked file, Ctrl+C), so out_root is always
+    either the old site or the new one."""
+    out_root.mkdir(exist_ok=True)
+    backup = Path(tempfile.mkdtemp(prefix='.xref-old-', dir=out_root.parent))
+    moved_out, moved_in = [], []
+    try:
+        for name in sorted(set(owned_entries(out_root)) | set(new) | {MANIFEST}):
+            if (out_root / name).exists() or (out_root / name).is_symlink():
+                shutil.move(out_root / name, backup / name)
+                moved_out.append(name)
+        for name in new:
+            shutil.move(new_dir / name, out_root / name)
+            moved_in.append(name)
+        (out_root / MANIFEST).write_text(json.dumps({'owned': new}, indent=2) + '\n', encoding='utf-8')
+    except BaseException:
+        for name in moved_in:  # undo: remove what came in, put the old entries back
+            target = out_root / name
+            shutil.rmtree(target) if target.is_dir() and not target.is_symlink() else target.unlink(missing_ok=True)
+        (out_root / MANIFEST).unlink(missing_ok=True)
+        for name in moved_out:
+            shutil.move(backup / name, out_root / name)
+        raise
+    finally:
+        shutil.rmtree(backup, ignore_errors=True)
 
 
 def files_under(root: Path, names) -> dict[str, bytes]:

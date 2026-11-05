@@ -90,6 +90,9 @@ main:focus { outline: none; }
 .keys { margin-inline-start: auto; display: flex; gap: .5em; align-items: center; font-size: var(--fs-small); color: var(--muted); white-space: nowrap;
   min-width: 0; overflow: hidden; flex: 0 3 auto; }
 .tools { display: flex; gap: 6px; align-items: center; flex: none; }
+.langs { display: flex; gap: 2px; flex: none; font-size: var(--fs-small); }
+.langs a { padding: .2em .6em; border-radius: 7px; text-decoration: none; color: var(--ink); }
+.langs a[aria-current="page"] { background: var(--ink); color: var(--bg); }
 .keys + .tools { margin-inline-start: max(8px, var(--u)); }
 .tool { display: inline-flex; align-items: center; justify-content: center; gap: .35em; min-width: 2.4em; height: 2.2em; padding-inline: .6em; border-radius: 9px; border: 1px solid var(--line);
   background: var(--surface); font: 600 var(--fs-small) var(--font-body); cursor: pointer; white-space: nowrap; }
@@ -215,7 +218,7 @@ h1 small { display: block; font-size: .45em; color: var(--muted); margin-top: .3
 .code .ln { display: grid; grid-template-columns: 3.4ch minmax(0, 1fr) auto; column-gap: 1ch; padding-right: .7em; border-left: 3px solid transparent; transition: opacity .15s, background .15s; }
 .code .no { text-align: right; color: var(--code-muted); user-select: none; }
 .code .tx { white-space: pre-wrap; overflow-wrap: anywhere; min-width: 0; }
-.code .mks { display: flex; gap: 3px; align-items: center; }
+.code .mks { display: flex; gap: 3px; align-items: center; user-select: none; }   /* not part of copied code */
 .code .mks i { font: 700 .72em/1.75em var(--font-body); font-style: normal; width: 1.75em; height: 1.75em; text-align: center; border-radius: 50%; background: #2c3747; color: #fff; }
 .code.has-hl .ln:not(.hl) .tx { opacity: .32; }
 .code .ln.hl { background: var(--hl-bg); border-left-color: var(--hl); }
@@ -223,17 +226,17 @@ h1 small { display: block; font-size: .45em; color: var(--muted); margin-top: .3
 .code .ln.mark { background: rgba(98, 210, 173, .13); border-left-color: #62d2ad; }
 @media (prefers-reduced-motion: reduce) { .code .ln { transition: none; } }
 
-/* Pygments token colours (dark code panel) */
-.code .k, .code .kn, .code .kd, .code .kr, .code .kc, .code .ow { color: #c79bff; }
-.code .s, .code .s1, .code .s2, .code .sd, .code .sa, .code .sb, .code .dl, .code .si, .code .se, .code .sx, .code .sr { color: #a8e07f; }
-.code .c, .code .c1, .code .cm, .code .cs, .code .ch, .code .cp { color: var(--code-muted); font-style: italic; }
-.code .nt { color: #7db6ff; }
-.code .na { color: #f5c46a; }
-.code .nf, .code .fm { color: #7fdcf5; }
-.code .nc, .code .nd { color: #ffcf73; }
-.code .nb, .code .bp, .code .mi, .code .mf, .code .mh, .code .il, .code .m, .code .kt { color: #f79a72; }
-.code .o, .code .p { color: #aab6c6; }
-.code .err { background: none; color: inherit; }
+/* Pygments token colours (dark code panel). Tokens carry the tk- prefix (model.TOKEN_PREFIX). */
+.code .tk-k, .code .tk-kn, .code .tk-kd, .code .tk-kr, .code .tk-kc, .code .tk-ow { color: #c79bff; }
+.code .tk-s, .code .tk-s1, .code .tk-s2, .code .tk-sd, .code .tk-sa, .code .tk-sb, .code .tk-dl, .code .tk-si, .code .tk-se, .code .tk-sx, .code .tk-sr { color: #a8e07f; }
+.code .tk-c, .code .tk-c1, .code .tk-cm, .code .tk-cs, .code .tk-ch, .code .tk-cp { color: var(--code-muted); font-style: italic; }
+.code .tk-nt { color: #7db6ff; }
+.code .tk-na { color: #f5c46a; }
+.code .tk-nf, .code .tk-fm { color: #7fdcf5; }
+.code .tk-nc, .code .tk-nd { color: #ffcf73; }
+.code .tk-nb, .code .tk-bp, .code .tk-mi, .code .tk-mf, .code .tk-mh, .code .tk-il, .code .tk-m, .code .tk-kt { color: #f79a72; }
+.code .tk-o, .code .tk-p { color: #aab6c6; }
+.code .tk-err { background: none; color: inherit; }
 
 .shared { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: calc(var(--gut) * 1.5); align-items: center; margin-top: calc(var(--gut) * 1.4); }
 .block-title { font-size: var(--fs-h4); margin-bottom: .3em; }

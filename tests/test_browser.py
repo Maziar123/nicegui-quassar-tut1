@@ -16,8 +16,10 @@ import pytest
 
 pytestmark = pytest.mark.browser
 playwright = pytest.importorskip('playwright.sync_api')
-CDN = re.compile(r'https://cdn\.jsdelivr\.net/npm/(@?[^@/]+)@[^/]+/(.+)')
+CDN = re.compile(r'https://cdn\.jsdelivr\.net/npm/((?:@[^/@]+/)?[^@/]+)(?:@[^/]+)?/(.+)')  # as in shoot.py
 SIZES = [(1920, 1080), (1440, 900), (390, 844)]
+SETTLED = """[...document.querySelectorAll('.cpv[data-kind="mermaid"]')].every(f =>
+    f.querySelector('.mermaid-out svg') || f.dataset.view === 'code')"""
 
 
 @pytest.fixture(scope='module')
@@ -32,15 +34,15 @@ def browser():
     with playwright.sync_playwright() as p:
         try:
             b = p.chromium.launch(executable_path=os.environ.get('XREF_CHROMIUM') or None)
-        except Exception as e:  # no browser installed: skip, do not fail
-            pytest.skip(f'Chromium is not available: {str(e).splitlines()[0]}')
+        except Exception as e:  # no browser: skip locally, but fail in CI (a broken install must not pass)
+            msg = f'Chromium is not available: {str(e).splitlines()[0]}'
+            pytest.fail(msg) if os.environ.get('CI') else pytest.skip(msg)
         yield b
         b.close()
 
 
-def serve_offline(route):
-    """Block the network; serve jsDelivr files from XREF_NPM_DIR when it is set."""
-    npm = os.environ.get('XREF_NPM_DIR')
+def serve_offline(route, npm=None):
+    """Block the network; serve jsDelivr files from npm (XREF_NPM_DIR) when given."""
     m = CDN.match(route.request.url)
     f = Path(npm) / m.group(1) / m.group(2) if npm and m else None
     if f and f.is_file():
@@ -53,15 +55,29 @@ def serve_offline(route):
 def open_page(browser, site):
     pages = []
 
-    def opener(path='index.html', size=(1440, 900), zoom=None, hash=''):
-        pg = browser.new_page(viewport={'width': size[0], 'height': size[1]})
+    def opener(path='index.html', size=(1440, 900), zoom=None, hash='', offline=False):
+        # reduced motion: the site then scrolls instantly (no smooth scroll to wait for)
+        pg = browser.new_page(viewport={'width': size[0], 'height': size[1]}, reduced_motion='reduce')
         pg.errors = []
         pg.on('pageerror', lambda e: pg.errors.append(str(e)))
-        pg.route(re.compile(r'^https?://.*'), serve_offline)
+        # console errors too, except the requests this test blocks on purpose (fonts, CDN)
+        pg.on(
+            'console',
+            lambda m: (
+                pg.errors.append(m.text)
+                if m.type == 'error' and 'net::ERR_' not in m.text and 'Failed to load resource' not in m.text
+                else None
+            ),
+        )
+        npm = None if offline else os.environ.get('XREF_NPM_DIR')
+        pg.route(re.compile(r'^https?://.*'), lambda route: serve_offline(route, npm))
         if zoom:
             # runs in every frame, also the sandboxed preview iframe, where localStorage throws
             pg.add_init_script(f"try {{ localStorage.setItem('xref-zoom', '{zoom}') }} catch (e) {{}}")
         pg.goto((site / path).as_uri() + hash)
+        # Mermaid draws after load and changes the page height: wait until every diagram has settled
+        # (drawn, or fallen back to its code), or clicks land on the wrong row
+        pg.wait_for_function(SETTLED, timeout=20000)
         pg.wait_for_timeout(150)
         pages.append(pg)
         return pg
@@ -174,9 +190,7 @@ def test_local_links_resolve(open_page, site):
 
 # ---------------------------------------------------------------- Markdown blocks
 def test_mermaid_without_network_shows_the_code(open_page):
-    if os.environ.get('XREF_NPM_DIR'):
-        pytest.skip('XREF_NPM_DIR is set: Mermaid can load')
-    pg = open_page()
+    pg = open_page(offline=True)
     if not pg.locator('.cpv[data-kind="mermaid"]').count():
         pytest.skip('no Mermaid block')
     pg.wait_for_function('document.querySelector(".cpv[data-kind=mermaid]").dataset.view === "code"', timeout=5000)
@@ -226,3 +240,48 @@ def test_accessibility_has_no_serious_problems(browser, site, path, scheme, size
     print('\n'.join(report))
     serious = [r for r, v in zip(report, violations, strict=True) if v['impact'] in ('serious', 'critical')]
     assert serious == []
+
+
+# ---------------------------------------------------------------- regressions from the second audit
+def test_broken_mermaid_leaves_nothing_behind(open_page):
+    """A syntax error once left a 'Syntax error in text' box at the end of the page, one more per redraw."""
+    if not os.environ.get('XREF_NPM_DIR'):
+        pytest.skip('set XREF_NPM_DIR to a folder with mermaid/ from npm to test drawing')
+    pg = open_page(size=(1920, 1080))
+    pg.wait_for_selector('.mermaid-out svg', timeout=15000)
+    pg.evaluate("""() => { const s = document.querySelector('.cpv[data-kind="mermaid"] script.src');
+        s.textContent = JSON.stringify('flowchart LR\\n  A --> --> B (((');
+        document.dispatchEvent(new Event('xref:look')); }""")
+    pg.wait_for_function('document.querySelector(".cpv[data-kind=mermaid]").dataset.view === "code"', timeout=10000)
+    pg.click('[data-tool="theme"]')  # one more redraw
+    pg.wait_for_timeout(800)
+    stray = pg.evaluate('[...document.body.children].filter(e => /^d?mmd-/.test(e.id)).map(e => e.id)')
+    assert stray == []
+    assert 'error' in pg.locator('.mermaid-out').first.inner_text()
+
+
+def test_bracket_keys_move_by_position(open_page):
+    """From a section header after the last step, ] once jumped back to the first step."""
+    pg = open_page(size=(1920, 1080))
+    last_part = pg.evaluate('[...document.querySelectorAll(".section")].at(-1).id')
+    pg.evaluate(f'document.getElementById("{last_part}").scrollIntoView()')
+    pg.wait_for_timeout(200)
+    y = pg.evaluate('scrollY')
+    pg.keyboard.press(']')  # no step below: stay
+    pg.wait_for_timeout(600)
+    assert abs(pg.evaluate('scrollY') - y) < 2
+    pg.keyboard.press('[')  # the step above
+    pg.wait_for_timeout(800)
+    assert -2 < pg.evaluate('document.querySelector(".step").getBoundingClientRect().top') < 120
+
+
+def test_selecting_code_copies_only_the_code(open_page):
+    """The copy fallback selects the whole <pre>; cross-comment numbers must not come along."""
+    pg = open_page()
+    st = steps()[0]
+    cid, code = next(iter(st.code.items()))
+    text = pg.evaluate(f"""() => {{ const pre = document.querySelector('#{st.id} pre[data-code="{cid}"]');
+        const r = document.createRange(); r.selectNodeContents(pre);
+        const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); return sel.toString(); }}""")
+    lines = [line.strip() for line in text.strip('\n').split('\n')]
+    assert lines == [line.strip() for line in code.lines]

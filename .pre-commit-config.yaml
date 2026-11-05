@@ -24,11 +24,11 @@ repos:
         name: fast tests
         entry: uv run pytest -m "not browser"
         language: system
-        files: ^(tutorial|content|tests)/
+        files: ^(tutorial/|content/|tests/|pyproject\.toml$|uv\.lock$)
         pass_filenames: false
       - id: docs
         name: docs/ is up to date
         entry: uv run python tutorial/build.py --check
         language: system
-        files: ^(tutorial|content|docs)/
+        files: ^(tutorial/|content/|docs/|pyproject\.toml$|uv\.lock$)
         pass_filenames: false

@@ -129,13 +129,15 @@
     const font = getComputedStyle(document.body);
     mermaid.initialize({
       startOnLoad: false, securityLevel: 'strict', theme: isDark() ? 'dark' : 'default',
+      suppressErrorRendering: true,                       // no 'Syntax error' box at the end of the page
       fontFamily: font.fontFamily, themeVariables: { fontSize: font.fontSize },   // grows on a TV and with A+
     });
     for (const [i, fig] of diagrams.entries()) {
       let src = '';
       try { src = JSON.parse(fig.querySelector('script.src').textContent); } catch (e) {}
+      const id = `mmd-${i}-${run}`;
       try {
-        const { svg, bindFunctions } = await mermaid.render(`mmd-${i}-${run}`, src);
+        const { svg, bindFunctions } = await mermaid.render(id, src);
         if (run !== drawing) return;
         const out = fig.querySelector('.mermaid-out');
         out.innerHTML = svg;
@@ -143,7 +145,10 @@
         const vb = out.querySelector('svg')?.viewBox?.baseVal;          // natural size, used on small screens
         if (vb && vb.width) out.style.setProperty('--natural', `${Math.round(vb.width)}px`);
       } catch (e) {
-        failed(fig, T.diagram_error || 'This diagram has an error.');
+        // Mermaid renders in a temporary element at the end of <body>; on an error it can stay there
+        document.getElementById(id)?.remove();
+        document.getElementById(`d${id}`)?.remove();
+        if (run === drawing) failed(fig, T.diagram_error || 'This diagram has an error.');
       }
     }
   }
@@ -216,6 +221,11 @@
   let hash = location.hash.slice(1);
   try { hash = decodeURIComponent(hash); } catch (e) {}   // a malformed hash (#100%) must not stop the script
   pinFromHash(hash, false);
+  addEventListener('hashchange', () => {   // a link to #s1-1-x3 on the same page
+    let h = location.hash.slice(1);
+    try { h = decodeURIComponent(h); } catch (e) {}
+    pinFromHash(h, true);
+  });
 
   // ---------- where am I: rail highlight + current step
   const targets = [...document.querySelectorAll('#summary, .section, .step')];
@@ -251,7 +261,9 @@
   // ---------- keyboard
   const steps = [...document.querySelectorAll('.step')];
   addEventListener('keydown', e => {
-    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    // AltGr (Ctrl+Alt on Windows) types [ and ] on many keyboards: let it through
+    const altGr = e.getModifierState && e.getModifierState('AltGraph');
+    if (!altGr && (e.ctrlKey || e.metaKey || e.altKey)) return;
     if (e.target.closest('input, textarea, select, [contenteditable]')) return;
     const k = e.key;
     const i = Number(k);
@@ -268,9 +280,18 @@
       pin(step, rows[next], true);
       e.preventDefault();
     } else if (k === ']' || k === '[') {
-      const at = current ? steps.indexOf(current) : -1;
-      const to = steps[k === ']' ? at + 1 : at - 1];
+      // by position, not by index: on a section header or the summary there is no current step
+      const line = innerHeight * 0.3;
+      const tops = steps.map(s => s.getBoundingClientRect().top);
+      let to;
+      if (k === ']') to = steps.find((s, i) => tops[i] > line + 1);
+      else {
+        const above = steps.filter((s, i) => tops[i] <= line);   // the current step is the last of these
+        if (current) above.pop();
+        to = above.at(-1);
+      }
       if (to) { to.scrollIntoView({ block: 'start', behavior: behavior() }); e.preventDefault(); return; }
+      if (steps.length > 1 || !document.body.classList.contains('step-page')) return;
       // a single-step page: follow its previous / next link to the other step pages
       const link = document.body.classList.contains('step-page') &&
         document.querySelector(k === ']' ? '.prevnext a.next' : '.prevnext a.prev');

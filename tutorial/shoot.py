@@ -41,7 +41,8 @@ import model  # noqa: E402
 ROOT = model.ROOT
 VIEW = {'width': 480, 'height': 180}  # CSS px; enough for the examples, same for every column
 SCALE = 2  # device pixels per CSS px, sharp on 4K / 8K screens
-CDN = re.compile(r'https://(?:cdn\.jsdelivr\.net/npm|unpkg\.com)/(@?[^@/]+)@[^/]+/(.+)')
+# package (scoped like @quasar/extras or not), optional @version, then the file path
+CDN = re.compile(r'https://(?:cdn\.jsdelivr\.net/npm|unpkg\.com)/((?:@[^/@]+/)?[^@/]+)(?:@[^/]+)?/(.+)')
 
 # Runs a NiceGUI column file with show=False, reload=False and a chosen port.
 NICEGUI_RUNNER = """
@@ -210,7 +211,7 @@ def shoot_step(browser, step, npm_dir, columns):
         'libraries': libs,
         'npm_dir_used': bool(npm_dir),
     }
-    (shots / 'result.json').write_text(json.dumps(result, indent=2) + '\n')
+    (shots / 'result.json').write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')
     same = all(v == 0 for v in diff.values())
     print(f'{step.relative_to(ROOT)}: {", ".join(pngs)} -> {"identical" if same else diff}')
 

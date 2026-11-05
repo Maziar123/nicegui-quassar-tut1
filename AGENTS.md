@@ -29,6 +29,7 @@ content/                         what the tutorial says (data, not layout)
     quasar.html                  column 1, runs on its own in a browser
     nicegui_app.py               column 2, runs on its own with python
     vue.html                     column 3, runs on its own in a browser
+                                 (a column file is <id>.html / <id>.py or <id>_<name>; vue-old.html is ignored)
     shots/                       made by tutorial/shoot.py (PNGs + result.json), committed
 tutorial/
   model.py                       reads content/ into typed objects (Site, Section, Step, Cross, Code, Shots)
@@ -82,7 +83,7 @@ package versions (`uv.lock`), so the system pip and PEP 668 never get in the way
 | `just lint` / `just fmt` | ruff check + format check / format and fix |
 | `just reqs` | write `requirements.txt` from `uv.lock` (after changing dependencies) |
 | `just ci` | everything CI runs: lint, requirements, tests, browser tests, docs up to date |
-| `just upgrade` | update every pinned package, then `uv.lock` and `requirements.txt` |
+| `just upgrade` | update the indirect packages in `uv.lock`, then `requirements.txt`, screenshots and `docs/` (direct packages: edit their `==` in `pyproject.toml` first) |
 
 Tools (all pinned in `pyproject.toml` → `uv.lock`, so every machine and CI use the same versions):
 uv (environment), ruff (lint + format, settings in `pyproject.toml`), pytest (`tests/`), Playwright
@@ -93,8 +94,11 @@ by hand (`requirements.txt` is exported for students who use plain pip, and a ch
 Git hooks (after `just setup`) run on every commit: ruff check, ruff format, requirements check, fast
 tests, and `build.py --check`. CI (`.github/workflows/ci.yml`) runs `just ci` on every push and pull
 request. `.github/workflows/pages.yml` publishes `docs/` (Settings → Pages → Source: GitHub Actions).
-Dependabot opens monthly update pull requests for the actions and for `uv.lock`; after merging one,
-run `just reqs`.
+Dependabot opens monthly update pull requests for the GitHub Actions only. Python packages are
+updated by hand (`./run upgrade`), because a new NiceGUI or Pygments can change the pages: the
+screenshots and `docs/` must be redone and looked at. CI fetches the pinned Mermaid from npm, so the
+browser tests draw diagrams there too; in CI a missing Chromium fails the run instead of skipping.
+`.gitattributes` keeps every file LF (the bash `run` script and the screenshot hashes need exact bytes).
 
 Machine settings go in a git-ignored `.env` (read by `just`): `XREF_CHROMIUM=/path/to/chromium` uses
 an existing browser, `XREF_NPM_DIR=/path` serves CDN files from unpacked npm packages (when the CDN is
@@ -103,8 +107,8 @@ blocked; also lets the browser tests draw Mermaid).
 `ln -s AGENTS.md CLAUDE.md` restores the symlink if it is ever lost.
 
 `build.py --out DIR` writes somewhere else (the tests use a temp folder). The build renders into a
-temporary folder and swaps the result in only when everything worked, so a failed build never leaves a
-half-empty `docs/`. `DIR/.xref-build.json` lists what the build owns (`index.html`, `steps/`, `assets/`,
+temporary folder and swaps the result in only when everything worked; the swap moves the old entries
+aside first and puts them back if it fails half-way, so `docs/` is always the old site or the new one. `DIR/.xref-build.json` lists what the build owns (`index.html`, `steps/`, `assets/`,
 `<lang>/`); those are replaced, a language removed from `site.toml` is cleaned up, and other files
 (a `CNAME`, say) are kept. A non-empty folder without that manifest is refused (`docs/` itself is allowed).
 
@@ -121,8 +125,10 @@ Jinja2, autoescape on, `StrictUndefined` (a typo fails the build). Templates get
 `tutorial/model.py`, not dicts: `step.note(c.id).run`, `x.refs`, `r.builtin`, `sh.urls`. UI strings are
 `t.<key>` (a namespace, so no key can collide with a dict method).
 
-- `base.html`: page skeleton. Blocks: `title`, `body_class`, `main`. Includes `partials/topbar.html`,
-  `partials/rail.html`, `partials/footer.html`.
+- `base.html`: page skeleton. Blocks: `title`, `description`, `body_class`, `main`. Includes
+  `partials/topbar.html`, `partials/rail.html`, `partials/footer.html`. With more than one language,
+  every page gets `<link rel="alternate" hreflang>` links and a language switcher in the top bar
+  (names from `name` in each `i18n/<lang>.toml`).
 - `index.html`: summary (`partials/summary.html`) + every section, each step embedded.
 - `step_page.html`: one step on its own page.
 - `step.html`: **the template for every step.** Blocks, top to bottom:
@@ -218,12 +224,16 @@ matches. After editing a column file, run the build and fix any marker it report
 - Every column file must run on its own. Test before committing:
   - all columns: `python tutorial/shoot.py`. It must report `identical`, unless the step is about a
     difference, in which case say so in the step text. It stores a sha256 of each column file; when a
-    file changes later, the build warns and the page shows the screenshot as out of date.
+    file changes, is removed, or is added after the screenshots, the build warns and the page shows the
+    screenshot as out of date.
   - NiceGUI columns also by hand: run with `show=False, reload=False` and fetch the page with curl.
 - Never name a column file `nicegui.py`: it hides the real `nicegui` package. Use `nicegui_app.py`.
 - `just test-browser` checks the built page at 1920 × 1080, 1440 × 900 and 390 × 844, at normal and
-  large text: no console errors, no sideways scroll, the page stays where it is scrolled, every
-  cross-comment lights exactly its lines. Still look at new layout work yourself, in both themes.
+  large text: no page or console errors (blocked fonts and CDN aside), no sideways scroll, the page stays
+  where it is scrolled, every cross-comment lights exactly its lines, `[` `]` move by position, copied
+  code has no cross-comment numbers, a broken diagram leaves nothing behind, and axe finds no serious
+  accessibility problem. Tests run with reduced motion and wait for diagrams to settle. Still look at
+  new layout work yourself, in both themes.
 - In site.js, never call `scrollIntoView()` on something inside the sticky rail: it scrolls the window
   too and locks the page on narrow screens. Scroll the rail itself.
 - Quasar sets `box-sizing: border-box` on everything. Plain Vue does not, so a plain column writes it
@@ -234,8 +244,11 @@ matches. After editing a column file, run the build and fix any marker it report
   level: templates use `H.title` / `H.sub` (3 / 4 inside the index, 1 / 2 on a step's own page) and
   style headings by class (`step-title`, `card-title`, `block-title`, `md-h1`…), never by tag. A button's
   visible text must be part of its accessible name (add words with `<span class="sr">`, not aria-label).
-- Pygments puts short class names on code tokens (`k`, `s`, `c`, `cp`, `nt`…). Never give a component
-  a class that short: the code + preview block is `cpv`, because `cp` (a Pygments token) clashed.
+- Code tokens carry the `tk-` prefix (`tk-k`, `tk-s`, …; `model.TOKEN_PREFIX`). Pygments' bare short
+  names clashed twice: `cp` with the code + preview block (now `cpv`) and `sr` with the screen-reader
+  class `.sr`, which made regex literals invisible. Never use a `tk-` class for anything else.
+- Read and write every text file with `encoding='utf-8'` (Windows defaults to cp1252, which cannot
+  even write the page's `A−`). A test checks every `read_text` / `write_text` call.
 - Audience is students: short sentences, plain words, no em-dash asides on the page.
 - Versions in use (tested 2026-11-05): NiceGUI 4.0.0 (bundles Vue 3.5.44, Quasar 2.35.2), FastAPI 0.162.0,
   uvicorn 0.54.0, Pygments 2.21.0, Jinja2 3.1.6, markdown-it-py 4.2.0, Playwright 1.64.1, pytest 9.2.0,

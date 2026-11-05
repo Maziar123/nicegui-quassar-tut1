@@ -8,6 +8,11 @@
     {%- endfor %}
   </div>
   <div class="keys"><kbd>C</kbd> {{ t.key_cross }} <kbd>[</kbd><kbd>]</kbd> {{ t.key_step }} <kbd>Esc</kbd> {{ t.key_clear }}</div>
+  {%- if alternates %}
+  <nav class="langs" aria-label="{{ t.language }}">
+    {%- for a in alternates %}<a href="{{ a.href }}" hreflang="{{ a.lang }}" lang="{{ a.lang }}"{% if a.current %} aria-current="page"{% endif %}>{{ a.name }}</a>{% endfor -%}
+  </nav>
+  {%- endif %}
   <div class="tools" dir="ltr">
     <button type="button" class="tool sm" data-tool="font-down" title="{{ t.font_smaller }}">A−<span class="sr"> {{ t.font_smaller }}</span></button>
     <button type="button" class="tool" data-tool="font-reset" title="{{ t.font_reset }}">A<span class="sr"> {{ t.font_reset }}</span></button>

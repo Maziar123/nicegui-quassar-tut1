@@ -123,7 +123,9 @@ def lexer_for(lang: str):
 
 def highlight_rows(code: str, lang: str) -> list[str]:
     """Highlighted HTML, one string per line (stripnl=False keeps leading blank lines)."""
-    html = highlight(code, lexer_for(lang), HtmlFormatter(nowrap=True))
+    html = highlight(
+        code, lexer_for(lang), HtmlFormatter(nowrap=True, classprefix='tk-')
+    )  # same prefix as model.TOKEN_PREFIX
     return [r or ' ' for r in html.rstrip('\n').split('\n')]
 
 
