@@ -1,0 +1,17 @@
+{#- Top bar: brand, column toggles, key hints, theme and text size. -#}
+<header class="topbar">
+  <a class="brand" href="{{ href('summary') }}">{{ site.title }}</a>
+  <div class="toggles" role="group" aria-label="{{ t.columns_group }}">
+    <span class="lbl">{{ t.columns }}</span>
+    {%- for c in cols %}
+    <button type="button" class="toggle" data-col="{{ c.id }}" aria-pressed="true"><kbd>{{ loop.index }}</kbd>{{ c.name }}</button>
+    {%- endfor %}
+  </div>
+  <div class="keys"><kbd>C</kbd> {{ t.key_cross }} <kbd>[</kbd><kbd>]</kbd> {{ t.key_step }} <kbd>Esc</kbd> {{ t.key_clear }}</div>
+  <div class="tools" dir="ltr">
+    <button type="button" class="tool sm" data-tool="font-down" aria-label="{{ t.font_smaller }}" title="{{ t.font_smaller }}">A−</button>
+    <button type="button" class="tool" data-tool="font-reset" aria-label="{{ t.font_reset }}" title="{{ t.font_reset }}">A</button>
+    <button type="button" class="tool lg" data-tool="font-up" aria-label="{{ t.font_larger }}" title="{{ t.font_larger }}">A+</button>
+    <button type="button" class="tool" data-tool="theme" title="{{ t.theme }}">{{ t.theme_auto }}</button>
+  </div>
+</header>

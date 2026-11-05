@@ -1,0 +1,95 @@
+{#- Reusable blocks. Import with:  {% import "macros.html" as m with context %} -#}
+
+{#- A pill in a column's colour. -#}
+{% macro chip(col, text) -%}
+<span class="chip c-{{ col }}">{{ text }}</span>
+{%- endmacro %}
+
+{#- A fake browser window around any content:  {% call m.browser("label") %}...{% endcall %} -#}
+{% macro browser(label) -%}
+<div class="browser"><div class="bbar"><i></i><i></i><i></i><span>{{ label }}</span></div>{{ caller() }}</div>
+{%- endmacro %}
+
+{#- A titled card:  {% call m.card("Title", "try") %}<p>...</p>{% endcall %} -#}
+{% macro card(title, kind="") -%}
+<div class="card {{ kind }}">{% if title %}<h4>{{ title }}</h4>{% endif %}{{ caller() }}</div>
+{%- endmacro %}
+
+{#- Highlighted code with line numbers and cross-comment numbers. Always left to right. -#}
+{% macro code_block(cid, code) -%}
+<pre class="code" dir="ltr" data-code="{{ cid }}"><code>
+{%- for row in code.rows -%}
+<span class="ln" data-n="{{ loop.index }}"><span class="no">{{ loop.index }}</span><span class="tx">{{ row }}</span><span class="mks">
+{%- for n in code.marks.get(loop.index, []) %}<i>{{ n }}</i>{% endfor -%}
+</span></span>
+{%- endfor -%}
+</code></pre>
+{%- endmacro %}
+
+{#- One column of a step: header, note, code. -#}
+{% macro column(step, c) -%}
+<div class="col" data-col="{{ c.id }}">
+  <div class="colhead"><b>{{ c.name }}</b>
+  {%- if c.id in step.code %}
+    {%- set code = step.code[c.id] %}
+    <span class="meta">{{ code.file }} · {{ code.lang }} · {{ code.nlines }} {{ t.lines }}</span>
+    <button class="copy" type="button" data-col="{{ c.id }}">{{ t.copy_code }}</button></div>
+  <p class="colnote">{{ step.columns.get(c.id, {}).get('note', '') | safe }}</p>
+  {{ code_block(c.id, code) }}
+  {%- else %}</div>
+  <div class="missing">{{ t.not_in.format(name=c.name) }}</div>
+  {%- endif %}
+</div>
+{%- endmacro %}
+
+{#- The shared screenshot, or one per column when they differ. -#}
+{% macro shots(step) -%}
+{%- set s = step.shots %}
+{%- if not s %}
+<div class="shared card"><div><h4>{{ t.shared_shot }}</h4><p>{{ t.shot_none }}</p></div></div>
+{%- else %}
+<div class="shared card{{ '' if s.same else ' differ' }}">
+  <div>
+    <h4>{{ t.shared_shot }}</h4>
+    <p>{{ t.shot_same.format(n=s.imgs | length) if s.same else t.shot_differ }}</p>
+    <div class="chips">
+    {%- for c in cols if c.id in s.imgs %}
+      {{ chip(c.id, c.name ~ ' ✓' if s.diff.get(c.id, 0) == 0 else c.name ~ ' · ' ~ t.px_differ.format(n=s.diff[c.id])) }}
+    {%- endfor %}
+    </div>
+    <p class="small">{{ t.shot_meta.format(w=s.w, h=s.h, scale=s.scale, date=s.date) }}</p>
+  </div>
+  {%- if s.same %}
+    {% call browser(cols_by_id[s.compared_to].name) %}<img src="{{ assets }}{{ s.imgs[s.compared_to] }}" width="{{ s.w }}" height="{{ s.h }}" alt="{{ t.shot_alt.format(name=cols_by_id[s.compared_to].name) }}">{% endcall %}
+  {%- else %}
+  <div class="shots-each">
+    {%- for c in cols if c.id in s.imgs %}
+    {% call browser(c.name) %}<img src="{{ assets }}{{ s.imgs[c.id] }}" width="{{ s.w }}" height="{{ s.h }}" alt="{{ t.shot_alt.format(name=c.name) }}">{% endcall %}
+    {%- endfor %}
+  </div>
+  {%- endif %}
+</div>
+{%- endif %}
+{%- endmacro %}
+
+{#- One cross-comment reference cell. -#}
+{% macro ref(cid, r) -%}
+{%- if r is none %}<span class="ref none" data-col="{{ cid }}">–</span>
+{%- elif r.get("builtin") %}<span class="ref built" data-col="{{ cid }}"><b>{{ t.built_in }}</b> {{ r.builtin }}</span>
+{%- else %}<span class="ref" data-col="{{ cid }}"><b>{{ r.label }}</b> <code>{{ r.hint }}</code></span>
+{%- endif %}
+{%- endmacro %}
+
+{#- The cross-comment list of a step. -#}
+{% macro cross(step) -%}
+<div class="xc">
+  <h4>{{ t.cross }} <span class="hint">{{ t.cross_hint }}</span></h4>
+  <div class="xhead"><span></span><span>{{ t.what_matches }}</span>{% for c in cols %}<span data-col="{{ c.id }}">{{ c.name }}</span>{% endfor %}</div>
+  {%- for x in step.cross %}
+  <button type="button" class="xrow" id="{{ step.id }}-x{{ x.n }}" data-n="{{ x.n }}" aria-pressed="false" data-refs="{{ x.ranges | tojson | forceescape }}">
+    <span class="mk">{{ x.n }}</span><span class="say"><b>{{ x.idea }}.</b> {{ x.say }}</span>
+    {%- for c in cols %}{{ ref(c.id, x.refs.get(c.id)) }}{% endfor %}
+  </button>
+  {%- endfor %}
+</div>
+{%- endmacro %}

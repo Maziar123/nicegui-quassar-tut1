@@ -1,0 +1,3 @@
+name = "Layout"
+about = "Boxes, rows and spacing: the same page built three ways."
+planned = ["Two boxes side by side", "Spacing between boxes"]

@@ -1,0 +1,70 @@
+# Step 1.1. Read by tutorial/build.py.
+# Cross-comment markers: each column is either
+#   { at = [["start text"], ["start text", "end text"]], hint = "short code" }
+#   { builtin = "what the library does for you" }
+# "start text" picks the first line that contains it ("=x": line is x after trimming, "==x": line is exactly x). "end text" ends the range
+# at the first line from there that contains it. The build stops if one is missing.
+
+name = "One empty box"
+
+intro = [
+  "Draw one empty box, 200 × 120 px, with a dark 2 px border.",
+  "Three columns, three ways to write it. They all draw the same pixels: the screenshot below compares them.",
+  "Look at cross-comments 3 and 5. Quasar and NiceGUI do two jobs for you that plain Vue has to write by hand.",
+]
+picture_caption = "The target: one box, 16 px from the top-left corner of the page"
+try_it = "Change the border to <code>2px dashed #333</code> in all three columns. Run each one. Do they still look the same?"
+
+[columns.quasar]
+note = "Quasar is a UI library for Vue. Its components, like <code>q-layout</code> and <code>q-page</code>, are written straight into the HTML."
+open = "quasar.html"
+
+[columns.nicegui]
+note = "NiceGUI is Python. You never write HTML. It builds the same Quasar page for you and sends it to the browser."
+run = "python nicegui_app.py"
+
+[columns.vue]
+note = "Plain Vue 3 with no UI library. You write the HTML and the CSS yourself."
+open = "vue.html"
+
+[[cross]]
+idea = "Load the library"
+say = "Bring the library into the page."
+quasar = { at = [["quasar.prod.css"], ["vue.global.prod.js", "quasar.umd.prod.js"]], hint = "<link> + <script>" }
+nicegui = { at = [["from nicegui import ui"]], hint = "from nicegui import ui" }
+vue = { at = [["import { createApp }"]], hint = "import { createApp }" }
+
+[[cross]]
+idea = "Page frame"
+say = "The part of the page the app controls."
+quasar = { at = [['<div id="q-app">', '<q-page class'], ['</q-page>', '=</div>']], hint = "q-layout > q-page" }
+nicegui = { builtin = "NiceGUI wraps every page in the same q-layout, q-page-container and q-page, so you never write them." }
+vue = { at = [['<div id="app">'], ['==  </div>']], hint = '<div id="app">' }
+
+[[cross]]
+idea = "Page padding"
+say = "16 px of space between the page edge and the box."
+quasar = { at = [['class="q-pa-md"']], hint = 'class="q-pa-md"' }
+nicegui = { builtin = "Its content area has padding: 1rem, which is 16 px." }
+vue = { at = [[".page { padding: 16px; }"], ['<div class="page">']], hint = ".page { padding: 16px }" }
+
+[[cross]]
+idea = "The box"
+say = "One empty div, 200 × 120 px, with a 2 px border."
+quasar = { at = [["width: 200px"]], hint = '<div style="…">' }
+nicegui = { at = [["BOX = "], ["ui.element('div')"]], hint = "ui.element('div').style(…)" }
+vue = { at = [[".box {", "=}"], ['<div class="box">']], hint = '.box + <div class="box">' }
+
+[[cross]]
+idea = "Border inside the size"
+say = "Count the border inside the 200 × 120, not outside it."
+quasar = { builtin = "quasar.css sets box-sizing: border-box on every element." }
+nicegui = { builtin = "Same as Quasar: NiceGUI loads quasar.css." }
+vue = { at = [["box-sizing: border-box"]], hint = "box-sizing: border-box" }
+
+[[cross]]
+idea = "Start the app"
+say = "Create the app and show it in the page."
+quasar = { at = [["Vue.createApp", "app.mount"]], hint = "app.use(Quasar).mount()" }
+nicegui = { at = [["def root"], ["ui.run("]], hint = "ui.run(root)" }
+vue = { at = [["createApp({}).mount"]], hint = "createApp({}).mount()" }

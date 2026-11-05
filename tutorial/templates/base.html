@@ -1,0 +1,36 @@
+{#- Page skeleton for every page. Child templates fill the blocks: title, body_class, main. -#}
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ t.dir }}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ site.title }}: {{ site.subtitle }}{% endblock %}</title>
+<script>
+  // Apply the saved theme and text size before the first paint (site.js handles the buttons).
+  (function () {
+    try {
+      var t = localStorage.getItem('xref-theme');
+      if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+      var z = Number(localStorage.getItem('xref-zoom'));
+      if (z >= 0.8 && z <= 1.6) document.documentElement.style.setProperty('--z', z);
+    } catch (e) {}
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ assets }}site.css">
+</head>
+<body class="{% block body_class %}{% endblock %}" data-page="{{ page_id }}">
+{% include "partials/topbar.html" %}
+<div class="shell">
+  {% include "partials/rail.html" %}
+  <main class="content">
+{% block main %}{% endblock %}
+{% include "partials/footer.html" %}
+  </main>
+</div>
+<script id="page-data" type="application/json">{{ page_data | tojson }}</script>
+<script src="{{ assets }}site.js"></script>
+</body>
+</html>

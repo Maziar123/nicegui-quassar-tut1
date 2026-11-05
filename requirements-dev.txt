@@ -1,0 +1,2 @@
+-r requirements.txt
+playwright==1.64.1  # tutorial/shoot.py: screenshots and pixel compare (then: playwright install chromium)

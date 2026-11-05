@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 230" role="img" aria-label="A page corner. One box sits 16 px from the top and the left. The box is 200 px wide and 120 px tall, with a 2 px border.">
+  <!-- page corner -->
+  <path d="M20 20 H390 M20 20 V220" fill="none" stroke="currentColor" stroke-opacity=".35" stroke-width="2"/>
+  <text x="26" y="14" font-size="11" fill="currentColor" fill-opacity=".6">page edge</text>
+  <!-- 16 px padding guides -->
+  <path d="M20 52 H68 M52 20 V68" fill="none" stroke="currentColor" stroke-opacity=".35" stroke-dasharray="3 3"/>
+  <text x="56" y="44" font-size="11" fill="currentColor" fill-opacity=".7">16</text>
+  <text x="24" y="66" font-size="11" fill="currentColor" fill-opacity=".7">16</text>
+  <!-- the box: 200 x 120 scaled to 1.4 -->
+  <rect x="53.4" y="53.4" width="277.2" height="165.2" fill="none" stroke="currentColor" stroke-width="2.8"/>
+  <!-- width -->
+  <path d="M52 34 H332" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  <path d="M52 29 V39 M332 29 V39" stroke="currentColor" stroke-width="1.5"/>
+  <text x="192" y="30" font-size="13" font-weight="600" fill="currentColor" text-anchor="middle">200 px</text>
+  <!-- height -->
+  <path d="M350 52 V220" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  <path d="M345 52 H355 M345 220 H355" stroke="currentColor" stroke-width="1.5"/>
+  <text x="360" y="140" font-size="13" font-weight="600" fill="currentColor">120 px</text>
+  <!-- border label -->
+  <path d="M190 160 L232 196" stroke="currentColor" stroke-opacity=".6" stroke-width="1"/>
+  <text x="120" y="150" font-size="12" fill="currentColor" fill-opacity=".8">2 px border, inside the size</text>
+</svg>

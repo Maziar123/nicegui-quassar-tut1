@@ -1,0 +1,26 @@
+{
+  "tested": "2026-11-05",
+  "view": {
+    "width": 480,
+    "height": 180
+  },
+  "scale": 2,
+  "compared_to": "quasar",
+  "diff_pixels": {
+    "nicegui": 0,
+    "vue": 0
+  },
+  "libraries": {
+    "quasar": {
+      "quasar": "2.35.2",
+      "vue": "3.5.45"
+    },
+    "nicegui": {
+      "quasar": "2.35.2",
+      "vue": "3.5.44",
+      "nicegui": "4.0.0"
+    },
+    "vue": {}
+  },
+  "npm_dir_used": true
+}

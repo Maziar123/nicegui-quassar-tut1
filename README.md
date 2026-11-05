@@ -1,57 +1,63 @@
-# Vue to NiceGUI, layer by layer
+# Quasar & NiceGUI & Vue 3
 
-A step-by-step tutorial for students. One tiny page (two empty rectangles side by side) is built five different ways, from plain Vue 3 up to NiceGUI, so you can see which layers each approach adds.
+A side-by-side cross-reference and tutorial for students. Every step builds the same small page three times, with **Quasar**, **NiceGUI** and plain **Vue 3**, and shows the three versions next to each other. Numbered cross-comments link the matching lines, and a screenshot proves the three pages look the same.
 
-**Open the tutorial:** [`docs/index.html`](docs/index.html). It is one self-contained HTML file with the code, a picture of what the browser shows, and an interactive layer diagram for every step. Click a layer to light up the code that belongs to it.
+The page is made for a 4K / 8K classroom TV. It also works on a laptop and a phone.
 
-## The steps
+**Open the tutorial:** [`docs/index.html`](docs/index.html). Each step also has its own page in [`docs/steps/`](docs/steps/).
 
-| Step | File | What it shows | Runs with |
-|---|---|---|---|
-| 1 | [`steps/step1-empty-rectangle.html`](steps/step1-empty-rectangle.html) | One empty rectangle with Vue 3 | A browser |
-| 2 | [`steps/step2-two-rectangles.html`](steps/step2-two-rectangles.html) | Two rectangles side by side (flexbox) | A browser |
-| 3 | [`steps/step3_nicegui.py`](steps/step3_nicegui.py) | The same page in NiceGUI (Python) | Python + NiceGUI |
-| 4 | [`steps/step4_mini_nicegui.py`](steps/step4_mini_nicegui.py) | The NiceGUI road built by hand: element tree → FastAPI → JSON → Vue `h()` | Python + FastAPI + uvicorn |
-| 5 | [`steps/step5_vue_quasar.html`](steps/step5_vue_quasar.html) | The same road with no Python: Vue 3 + Quasar 2 | A browser |
+On every page, the top bar lets you hide or show a column, change the text size (A− / A / A+) and switch the theme (Auto / Light / Dark). Keys: `1` `2` `3` toggle a column, `C` steps through cross-comments, `[` `]` move between steps, `Esc` clears the highlight.
 
-[`steps/step3_sent_to_browser.json`](steps/step3_sent_to_browser.json) is the element tree NiceGUI actually sent to the browser for Step 3, captured from a real run.
+## Steps so far
 
-## Run the steps
+| Step | Folder | Shows |
+|---|---|---|
+| 1.1 | [`content/01-layout/01-one-box`](content/01-layout/01-one-box) | One empty box: page frame, padding, `box-sizing` |
 
-HTML steps (1, 2, 5): open the file in a browser. They load Vue and Quasar from a CDN, so they need internet the first time.
+More steps are planned and listed on the page: two boxes side by side, spacing, the element tree, server to browser, a mini NiceGUI, clicks and updates.
 
-Python steps (3, 4), on Arch Linux or anywhere else. Arch's system Python refuses `pip install` (PEP 668), so use a virtual environment:
+## Run a step yourself
+
+Quasar and Vue columns: open the `.html` file in a browser. They load Vue and Quasar from jsDelivr, so they need internet the first time.
+
+NiceGUI columns need Python. On Arch Linux, use a virtual environment, because the system pip is blocked (PEP 668):
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-python steps/step3_nicegui.py        # opens http://localhost:8080
-python steps/step4_mini_nicegui.py   # serves http://localhost:8080
+python content/01-layout/01-one-box/nicegui_app.py   # opens http://localhost:8080
 ```
 
-## Rebuild the tutorial page
+## Change the tutorial
 
-`docs/index.html` is generated. Edit the files in `steps/` or `tutorial/`, then run:
+`docs/` is generated. Edit `content/` or `tutorial/`, then rebuild:
 
 ```bash
-python tutorial/build.py
+pip install -r requirements-dev.txt
+playwright install chromium         # once
+python tutorial/shoot.py            # screenshots + pixel compare, after changing a column file
+python tutorial/build.py            # writes docs/
 ```
 
-The build reads the step files, highlights them with Pygments, works out which code lines belong to each layer, and writes `docs/index.html`. The code on the page is always the code in `steps/`.
-
-To publish the page with GitHub Pages: Settings → Pages → Deploy from a branch → `main` / `docs`.
+How it fits together, how to add a step, the template blocks, and how to add a language are in [`AGENTS.md`](AGENTS.md). The layout follows [`design/wireframe-tv.html`](design/wireframe-tv.html).
 
 ## Layout
 
 ```
-steps/              the five tested sample files (+ captured JSON)
-tutorial/build.py   generates docs/index.html; step texts and layer data live here
-tutorial/template.html   page layout, styles and script
-docs/index.html     the built tutorial (generated, committed for easy viewing)
-design/wireframe-tv.html the one design wireframe (4K / 8K TV): Quasar & NiceGUI & xxx side by side
+content/                 the tutorial text, the column files and their screenshots
+tutorial/build.py        content/ + templates -> docs/
+tutorial/shoot.py        screenshots every column and compares the pixels
+tutorial/templates/      Jinja2 page, step and block templates
+tutorial/assets/         site.css and site.js, shared by every page
+tutorial/i18n/           UI strings (English now; more languages can be added)
+docs/                    the built site (generated, committed for GitHub Pages)
+design/wireframe-tv.html the layout to follow
+steps/                   older stand-alone samples, kept as material for Section 2
 ```
+
+To publish with GitHub Pages: Settings → Pages → Deploy from a branch → `main` / `docs`.
 
 ## Tested with
 
-NiceGUI 4.0.0 (bundles Vue 3.5.44 and Quasar 2.35.2), FastAPI 0.162.0, uvicorn 0.54.0, headless Chrome. Tested 5 November 2026. Steps 3 and 5 were screenshotted and compared: the pixels match.
+NiceGUI 4.0.0 (bundles Vue 3.5.44 and Quasar 2.35.2), Vue 3.5.45 and Quasar 2.35.2 from the CDN, FastAPI 0.162.0, uvicorn 0.54.0, Jinja2 3.1.6, Pygments 2.21.0, Playwright 1.64.1 with headless Chromium. Tested 5 November 2026. In Step 1.1, the three columns render identical pixels.
