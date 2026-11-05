@@ -92,8 +92,12 @@ def steps():
     return [st for sec in model.load_sections(site) for st in sec.steps]
 
 
+# the index and every step's own page, so a new step is checked without editing this file
+PAGES = ['index.html'] + [f'steps/{st.slug}.html' for st in steps()]
+
+
 # ---------------------------------------------------------------- layout
-@pytest.mark.parametrize('path', ['index.html', 'steps/1-1.html'])
+@pytest.mark.parametrize('path', PAGES)
 @pytest.mark.parametrize('size', SIZES)
 @pytest.mark.parametrize('zoom', [1, 1.6])
 def test_no_sideways_scroll_and_no_errors(open_page, path, size, zoom):
@@ -115,7 +119,7 @@ SCROLL_TO_EACH_PART = """async () => {
 }"""
 
 
-@pytest.mark.parametrize('path', ['index.html', 'steps/1-1.html'])
+@pytest.mark.parametrize('path', PAGES)
 @pytest.mark.parametrize('size', [(390, 844), (800, 600), (1440, 900)])
 def test_page_stays_where_it_is_scrolled(open_page, path, size):
     """Regression: the sticky rail once pulled the window back whenever the active rail link changed
@@ -175,7 +179,7 @@ def test_column_toggle_and_text_size_and_theme(open_page):
 
 
 def test_local_links_resolve(open_page, site):
-    for path in ['index.html', 'steps/1-1.html']:
+    for path in PAGES:
         pg = open_page(path)
         hrefs = pg.evaluate(
             '[...document.querySelectorAll("a[href], img[src], link[href], script[src]")].map(e => '
@@ -220,7 +224,7 @@ def test_html_preview_is_sandboxed_and_renders(open_page):
 
 
 # ---------------------------------------------------------------- accessibility (axe-core)
-@pytest.mark.parametrize('path', ['index.html', 'steps/1-1.html'])
+@pytest.mark.parametrize('path', PAGES)
 @pytest.mark.parametrize('scheme', ['light', 'dark'])
 @pytest.mark.parametrize('size', [(1920, 1080), (390, 844)])
 def test_accessibility_has_no_serious_problems(browser, site, path, scheme, size):
@@ -270,9 +274,11 @@ def test_bracket_keys_move_by_position(open_page):
     pg.keyboard.press(']')  # no step below: stay
     pg.wait_for_timeout(600)
     assert abs(pg.evaluate('scrollY') - y) < 2
-    pg.keyboard.press('[')  # the step above
-    pg.wait_for_timeout(800)
-    assert -2 < pg.evaluate('document.querySelector(".step").getBoundingClientRect().top') < 120
+    tops = '[...document.querySelectorAll(".step")].map(s => Math.round(s.getBoundingClientRect().top))'
+    for n in range(len(steps()) - 1, -1, -1):  # [ walks up through every step, last to first
+        pg.keyboard.press('[')
+        pg.wait_for_timeout(300)
+        assert -2 < pg.evaluate(tops)[n] < 120, f'step {n + 1} not at the top after ['
 
 
 def test_selecting_code_copies_only_the_code(open_page):

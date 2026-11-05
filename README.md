@@ -13,8 +13,9 @@ On every page, the top bar lets you hide or show a column, change the text size 
 | Step | Folder | Shows |
 |---|---|---|
 | 1.1 | [`content/01-layout/01-one-box`](content/01-layout/01-one-box) | One empty box: page frame, padding, `box-sizing` |
+| 1.2 | [`content/01-layout/02-two-boxes`](content/01-layout/02-two-boxes) | Two boxes in a row: flexbox, gap, wrapping (NiceGUI rows have both built in) |
 
-More steps are planned and listed on the page: two boxes side by side, spacing, the element tree, server to browser, a mini NiceGUI, clicks and updates.
+More steps are planned and listed on the page: spacing, the element tree, server to browser, a mini NiceGUI, clicks and updates.
 
 ## Run a step yourself
 
@@ -77,4 +78,4 @@ To publish with GitHub Pages: Settings → Pages → Source: **GitHub Actions** 
 
 ## Tested with
 
-NiceGUI 4.0.0 (bundles Vue 3.5.44 and Quasar 2.35.2), Vue 3.5.45 and Quasar 2.35.2 from the CDN, FastAPI 0.162.0, uvicorn 0.54.0, Jinja2 3.1.6, Pygments 2.21.0, markdown-it-py 4.2.0, Playwright 1.64.1, pytest 9.2.0, ruff 0.17.3, uv 0.13.7, Mermaid 12.2.0 with headless Chromium. Tested 5 November 2026. In Step 1.1, the three columns render identical pixels.
+NiceGUI 4.0.0 (bundles Vue 3.5.44 and Quasar 2.35.2), Vue 3.5.45 and Quasar 2.35.2 from the CDN, FastAPI 0.162.0, uvicorn 0.54.0, Jinja2 3.1.6, Pygments 2.21.0, markdown-it-py 4.2.0, Playwright 1.64.1, pytest 9.2.0, ruff 0.17.3, uv 0.13.7, Mermaid 12.2.0 with headless Chromium. Tested 5 November 2026. In Steps 1.1 and 1.2, the three columns render identical pixels.

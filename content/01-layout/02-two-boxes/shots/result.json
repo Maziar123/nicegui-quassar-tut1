@@ -1,0 +1,33 @@
+{
+  "tested": "2026-11-05",
+  "view": {
+    "width": 480,
+    "height": 180
+  },
+  "scale": 2,
+  "compared_to": "quasar",
+  "diff_pixels": {
+    "nicegui": 0,
+    "vue": 0
+  },
+  "sources": {
+    "quasar": "f2db7ad3d8e8f52b73e83dce1f0eef4a1f3b6b35ac30e010d5ba3f29c5eb7209",
+    "nicegui": "a9342426c3de854f4bbd049a817e8f540afff3b27a11122ff4084642f12e73bd",
+    "vue": "9c55c637443d2ace0b3bc0ca0ef2cc28f1325ac3ef461c7b8988bb5fff11fed0"
+  },
+  "libraries": {
+    "quasar": {
+      "quasar": "2.35.2",
+      "vue": "3.5.45"
+    },
+    "nicegui": {
+      "quasar": "2.35.2",
+      "vue": "3.5.44",
+      "nicegui": "4.0.0"
+    },
+    "vue": {
+      "vue": "3.5.45"
+    }
+  },
+  "npm_dir_used": true
+}

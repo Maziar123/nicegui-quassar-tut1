@@ -1,0 +1,64 @@
+# Step 1.2. Read by tutorial/build.py. Text fields are Markdown (inline): `code`, **bold**, [links](...).
+# Every *.md file in this folder becomes a block below the screenshot, in file-name order.
+# Cross-comment markers: each column is either
+#   { at = [["start text"], ["start text", "end text"]], hint = "short code" }
+#   { builtin = "what the library does for you" }
+# "start text" picks the first line that contains it ("=x": line is x after trimming, "==x": line is exactly x).
+# "end text" ends the range at the first line from there that contains it. The build stops if one is missing.
+
+name = "Two boxes side by side"
+
+intro = [
+  "Put two of the boxes from step 1.1 next to each other, with 16 px of space between them.",
+  "The new idea is a **row**: a box that puts its children side by side. All three columns use the same CSS underneath, called flexbox.",
+  "Look at cross-comments 2 and 4. NiceGUI's row already has the gap and the wrapping. Quasar has the wrapping. Plain Vue writes both.",
+]
+picture_caption = "Two boxes in one row, 16 px apart"
+try_it = "Make the window narrower than 448 px (16 + 200 + 16 + 200 + 16). In all three columns the right box jumps under the left one: that is the wrap from cross-comment 4."
+
+[columns.quasar]
+note = "Quasar's `row` class turns a plain `div` into a row. The gap is not part of it, so it goes in `style`."
+open = "quasar.html"
+
+[columns.nicegui]
+note = "`ui.row()` is the row. Everything indented under `with` goes inside it. No gap to write: NiceGUI rows have one."
+run = "python nicegui_app.py"
+
+[columns.vue]
+note = "Plain CSS: a `.row` class with `display: flex`, the gap and the wrapping, all written by hand."
+open = "vue.html"
+
+[[cross]]
+idea = "Row"
+say = "A box that puts its children side by side (CSS `display: flex`)."
+quasar = { at = [['class="row"']], hint = 'class="row"' }
+nicegui = { at = [["with ui.row():"]], hint = "with ui.row():" }
+vue = { at = [[".row {", "=}"], ['<div class="row">']], hint = ".row { display: flex }" }
+
+[[cross]]
+idea = "Gap"
+say = "16 px of space between the children of a row."
+quasar = { at = [['style="gap: 16px"']], hint = 'style="gap: 16px"' }
+nicegui = { builtin = "Every NiceGUI row has gap: 1rem (16 px) already. Change it with .style('gap: 8px')." }
+vue = { at = [["gap: 16px"]], hint = "gap: 16px" }
+
+[[cross]]
+idea = "Children"
+say = "The boxes go inside the row: between its tags in HTML, indented under `with` in NiceGUI."
+quasar = { at = [["<!-- left -->"], ["<!-- right -->"]], hint = "tags inside <div class=\"row\">" }
+nicegui = { at = [["# left"], ["# right"]], hint = "indented under with" }
+vue = { at = [["<!-- left -->"], ["<!-- right -->"]], hint = "tags inside <div class=\"row\">" }
+
+[[cross]]
+idea = "Wrap"
+say = "When the row is too narrow, the next child moves to a new line instead of sticking out."
+quasar = { builtin = "Quasar's .row class has flex-wrap: wrap." }
+nicegui = { builtin = "ui.row() wraps too: wrap=True is the default (ui.row(wrap=False) stops it)." }
+vue = { at = [["flex-wrap: wrap"]], hint = "flex-wrap: wrap" }
+
+[[cross]]
+idea = "Same box"
+say = "Each box is the box from step 1.1: 200 × 120 px with a 2 px border inside the size."
+quasar = { at = [["<!-- left -->"]], hint = '<div style="…">' }
+nicegui = { at = [["BOX = "]], hint = "BOX = '…'" }
+vue = { at = [[".box {", "=}"]], hint = ".box { … }" }
