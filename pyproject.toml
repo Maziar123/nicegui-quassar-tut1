@@ -23,6 +23,7 @@ dev = [
     "ruff==0.17.3",                 # lint + format
     "prek==0.5.10",                 # git hooks (pre-commit compatible, .pre-commit-config.yaml)
     "rust-just==1.59.0",            # the `just` command runner (justfile)
+    "axe-playwright-python==0.1.8", # accessibility checks in tests/test_browser.py (bundles axe-core 4.12)
 ]
 
 [tool.uv]

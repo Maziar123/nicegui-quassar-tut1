@@ -34,6 +34,8 @@ import model  # noqa: E402
 TEMPLATES = model.HERE / 'templates'
 ASSETS = model.HERE / 'assets'
 MANIFEST = '.xref-build.json'
+# heading levels of a step: inside the index it sits under a section h2; on its own page it is the h1
+HEADINGS = {'index': {'title': 3, 'sub': 4}, 'page': {'title': 1, 'sub': 2}}
 DEFAULT_OUT = model.ROOT / 'docs'
 LEGACY_OWNED = ['index.html', 'steps', 'assets']  # docs/ before the manifest existed
 SAFE_NAME = re.compile(r'[A-Za-z0-9][A-Za-z0-9._-]*')
@@ -125,7 +127,9 @@ def build_language(lang: str, out_root: Path, env: Environment) -> list[Path]:
     def render_step(st, links, mode, assets):
         try:
             return Markup(
-                env.get_template(st.template).render(**common, **links.ctx(assets), step=st, sec=st.section, mode=mode)
+                env.get_template(st.template).render(
+                    **common, **links.ctx(assets), step=st, sec=st.section, mode=mode, H=HEADINGS[mode]
+                )
             )
         except ValueError as e:  # e.g. a bad code-fence info string in a .md file
             raise model.ContentError(f'{model.rel(st.dir)}: {e}') from None

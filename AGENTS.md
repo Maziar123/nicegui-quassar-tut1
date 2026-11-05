@@ -32,6 +32,7 @@ content/                         what the tutorial says (data, not layout)
     shots/                       made by tutorial/shoot.py (PNGs + result.json), committed
 tutorial/
   model.py                       reads content/ into typed objects (Site, Section, Step, Cross, Code, Shots)
+  steps.py                       find a step by number (`./run steps`, `./run nicegui 1.1`)
   mdrender.py                    Markdown: Pygments code fences, Mermaid + HTML code/preview blocks
   build.py                       renders the model with the templates into docs/
   shoot.py                       screenshots every column and compares the pixels (uses model.py)
@@ -46,7 +47,8 @@ tests/test_model.py              markers, translations, Markdown fences, build s
 tests/test_browser.py            the built site in headless Chromium (layout, scroll, cross-comments, Mermaid)
 pyproject.toml, uv.lock          dependencies (runtime + dev group) and tool settings; the exact lock
 requirements.txt                 exported from uv.lock for plain pip (do not edit)
-justfile                         every project command (`just` lists them)
+justfile                         every project command (`./run` lists them)
+run                              root shortcut: ./run <command> = uv run just <command>
 .pre-commit-config.yaml          git hooks (prek); .github/ CI, Pages deploy, Dependabot
 design/wireframe-tv.html         the layout to follow
 design/tooling-2026-11.md        survey of frameworks and tools (why the generator stays custom; what to adopt next)
@@ -60,17 +62,22 @@ uv manages the Python version (`.python-version`), the virtual environment (`.ve
 package versions (`uv.lock`), so the system pip and PEP 668 never get in the way.
 
 ```bash
-uv sync                 # install the locked environment (once, and after pulling)
-uv run just setup       # + git hooks (prek) + Chromium for screenshots and browser tests
-uv run just             # list every command
+./run                   # list every command (first run creates .venv from uv.lock by itself)
+./run setup             # once: git hooks (prek) + Chromium for screenshots and browser tests
+./run serve             # build and open the site on http://localhost:8000
+./run nicegui 1.1       # run the NiceGUI column of step 1.1
+./run open 1.1 vue      # open an HTML column (quasar / vue) in the browser
 ```
+
+`./run X` is exactly `uv run just X`: the root `run` script only checks that uv is installed.
 
 | Command | Does |
 |---|---|
 | `just shoot` | screenshot every column, compare pixels, write `shots/` (after changing a column file) |
 | `just build` | build the site into `docs/` |
-| `just serve` | serve `docs/` on http://localhost:8000 |
-| `just run 01-layout/01-one-box` | run one NiceGUI column |
+| `just serve` | build, then serve `docs/` on http://localhost:8000 and open the browser |
+| `just steps` | list the steps: number, name, folder, column files (`tutorial/steps.py`) |
+| `just nicegui 1.1` / `just open 1.1 vue` | run a NiceGUI column / open an HTML column, by step number |
 | `just test` / `just test-browser` | fast tests / browser tests in headless Chromium |
 | `just lint` / `just fmt` | ruff check + format check / format and fix |
 | `just reqs` | write `requirements.txt` from `uv.lock` (after changing dependencies) |
@@ -221,10 +228,19 @@ matches. After editing a column file, run the build and fix any marker it report
   too and locks the page on narrow screens. Scroll the rail itself.
 - Quasar sets `box-sizing: border-box` on everything. Plain Vue does not, so a plain column writes it
   by hand to match.
+- Accessibility is tested (axe-core in `tests/test_browser.py`): no serious or critical problem in either
+  theme. Text needs 4.5:1 contrast: column colours are also text colours, so a new colour must pass on
+  white, on the page background and on its own fill. Every page has one `h1` and no skipped heading
+  level: templates use `H.title` / `H.sub` (3 / 4 inside the index, 1 / 2 on a step's own page) and
+  style headings by class (`step-title`, `card-title`, `block-title`, `md-h1`…), never by tag. A button's
+  visible text must be part of its accessible name (add words with `<span class="sr">`, not aria-label).
+- Pygments puts short class names on code tokens (`k`, `s`, `c`, `cp`, `nt`…). Never give a component
+  a class that short: the code + preview block is `cpv`, because `cp` (a Pygments token) clashed.
 - Audience is students: short sentences, plain words, no em-dash asides on the page.
 - Versions in use (tested 2026-11-05): NiceGUI 4.0.0 (bundles Vue 3.5.44, Quasar 2.35.2), FastAPI 0.162.0,
   uvicorn 0.54.0, Pygments 2.21.0, Jinja2 3.1.6, markdown-it-py 4.2.0, Playwright 1.64.1, pytest 9.2.0,
-  ruff 0.17.3, prek 0.5.10, just 1.59.0 (rust-just), uv 0.13.7, Mermaid 12.2.0 (browser), Python 3.13. The HTML columns load `vue@3` and
+  ruff 0.17.3, prek 0.5.10, just 1.59.0 (rust-just), uv 0.13.7, axe-playwright-python 0.1.8 (axe-core 4.12),
+  Mermaid 12.2.0 (browser), Python 3.13. The HTML columns load `vue@3` and
   `quasar@2` from jsDelivr (Vue 3.5.45, Quasar 2.35.2 today).
 
 ## Adding a step

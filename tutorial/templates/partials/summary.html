@@ -60,7 +60,7 @@
   <div class="seccards">
     {%- for sec in sections %}{% set ready = t.steps_ready.format(ready=sec.steps | length, total=sec.total) %}
     <div class="card seccard">
-      <h4><a href="{{ href(sec.id) }}"><span class="secnum">{{ sec.n }}</span>{{ sec.name }}</a></h4>
+      <h3 class="card-title"><a href="{{ href(sec.id) }}"><span class="secnum">{{ sec.n }}</span>{{ sec.name }}</a></h3>
       <p>{{ sec.about }}</p>
       <div class="progress" role="img" aria-label="{{ ready }}">
         {%- for st in sec.steps %}<i class="on"></i>{% endfor %}{% for p in sec.planned %}<i></i>{% endfor -%}

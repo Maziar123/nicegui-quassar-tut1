@@ -107,13 +107,13 @@
   // ---------- code + preview blocks (```mermaid, ```html preview): Both / Code / Preview
   function setView(fig, view) {
     fig.dataset.view = view;
-    fig.querySelectorAll('.cp-views button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
+    fig.querySelectorAll('.cpv-views button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
   }
-  document.querySelectorAll('.cp').forEach(fig =>
-    fig.querySelectorAll('.cp-views button').forEach(b => b.addEventListener('click', () => setView(fig, b.dataset.view))));
+  document.querySelectorAll('.cpv').forEach(fig =>
+    fig.querySelectorAll('.cpv-views button').forEach(b => b.addEventListener('click', () => setView(fig, b.dataset.view))));
 
   // ---------- Mermaid: loaded only when the page has a diagram; pinned URL from content/site.toml
-  const diagrams = [...document.querySelectorAll('.cp[data-kind="mermaid"]')];
+  const diagrams = [...document.querySelectorAll('.cpv[data-kind="mermaid"]')];
   const darkMedia = matchMedia('(prefers-color-scheme: dark)');
   const isDark = () => root.dataset.theme === 'dark' || (root.dataset.theme !== 'light' && darkMedia.matches);
   let mermaid = null, drawing = 0;

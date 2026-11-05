@@ -4,13 +4,14 @@
         {% import "macros.html" as m with context %}
         {% block extra %} ... {% endblock %}
     Blocks, top to bottom: head, intro, columns, shots, extra, cross, foot, nav.
-    Variables: step, sec, site, cols, t, md, mode ("index" or "page"), href(), step_link(), step_page_href(), assets.
+    Variables: step, sec, site, cols, t, md, mode ("index" or "page"), href(), step_link(), step_page_href(), assets,
+    H.title / H.sub: heading levels (index: 3 / 4, own page: 1 / 2), so every page has one h1 and no skipped level.
     Text fields are Markdown: md.inline(text). The step's *.md files are step.blocks, shown in `extra`. -#}
 {% import "macros.html" as m with context %}
 <article class="step" id="{{ step.id }}" aria-labelledby="{{ step.id }}-title">
 {%- block head %}
   <header class="step-head">
-    <span class="badge">{{ step.num }}</span><h3 id="{{ step.id }}-title">{{ step.name }}</h3>
+    <span class="badge">{{ step.num }}</span><h{{ H.title }} class="step-title" id="{{ step.id }}-title">{{ step.name }}</h{{ H.title }}>
     {%- if mode == "index" %}
     <a class="alone" href="{{ step_page_href(step) }}">{{ t.open_alone }} ↗</a>
     {%- endif %}
@@ -45,7 +46,7 @@
   {%- if step.blocks %}
   <div class="extra">
     {%- for b in step.blocks %}
-    <section class="card mdblock" id="{{ step.id }}-{{ b.name }}">{{ md.block(b.text) }}</section>
+    <section class="card mdblock" id="{{ step.id }}-{{ b.name }}">{{ md.block(b.text, top=H.sub) }}</section>
     {%- endfor %}
   </div>
   {%- endif %}

@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Shortcut for every project command.  ./run  lists them.
+#
+#   ./run serve            build the site and open it on http://localhost:8000
+#   ./run nicegui 1.1      run the NiceGUI column of step 1.1
+#   ./run open 1.1 vue     open an HTML column (quasar or vue) in the browser
+#   ./run steps            list the steps
+#   ./run ci               everything CI checks
+#
+# The only thing you install yourself is uv (Arch Linux: sudo pacman -S uv).
+# The first run creates .venv with the exact versions from uv.lock; later runs start at once.
+# ./run X is the same as: uv run just X  (the commands live in the justfile)
+set -euo pipefail
+cd "$(dirname "$0")"
+
+if ! command -v uv > /dev/null 2>&1; then
+    echo "This project needs uv. Arch Linux: sudo pacman -S uv   Other systems: https://docs.astral.sh/uv/" >&2
+    exit 1
+fi
+
+exec uv run --quiet just "$@"

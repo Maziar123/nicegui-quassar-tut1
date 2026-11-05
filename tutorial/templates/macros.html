@@ -13,8 +13,8 @@
 {%- endmacro %}
 
 {#- A titled card:  {% call m.card("Title", "try") %}<p>...</p>{% endcall %}   kinds: try, aside, dashed -#}
-{% macro card(title, kind="") -%}
-<div class="card {{ kind }}">{% if title %}<h4>{{ title }}</h4>{% endif %}{{ caller() }}</div>
+{% macro card(title, kind="", level=none) -%}{% set lv = level or H.sub %}
+<div class="card {{ kind }}">{% if title %}<h{{ lv }} class="card-title">{{ title }}</h{{ lv }}>{% endif %}{{ caller() }}</div>
 {%- endmacro %}
 
 {#- Highlighted code with line numbers and cross-comment numbers. Always left to right. -#}
@@ -48,11 +48,11 @@
 {% macro shots(step) -%}
 {%- set s = step.shots %}
 {%- if not s %}
-<div class="shared card"><div><h4>{{ t.shared_shot }}</h4><p>{{ t.shot_none }}</p></div></div>
+<div class="shared card"><div><h{{ H.sub }} class="block-title">{{ t.shared_shot }}</h{{ H.sub }}><p>{{ t.shot_none }}</p></div></div>
 {%- else %}
 <div class="shared card{{ '' if s.same else ' differ' }}">
   <div>
-    <h4>{{ t.shared_shot }}</h4>
+    <h{{ H.sub }} class="block-title">{{ t.shared_shot }}</h{{ H.sub }}>
     <p>{{ t.shot_same.format(n=s.files | length) if s.same else t.shot_differ }}</p>
     <div class="chips">
     {%- for c in cols if c.id in s.files %}{% set d = s.diff.get(c.id, 0) %}
@@ -84,7 +84,7 @@
 {#- The cross-comment list of a step. -#}
 {% macro cross(step) -%}
 <div class="xc">
-  <h4>{{ t.cross }} <span class="hint">{{ t.cross_hint }}</span></h4>
+  <h{{ H.sub }} class="block-title">{{ t.cross }} <span class="hint">{{ t.cross_hint }}</span></h{{ H.sub }}>
   <div class="xhead" aria-hidden="true"><span></span><span>{{ t.what_matches }}</span>{% for c in cols %}<span data-col="{{ c.id }}">{{ c.name }}</span>{% endfor %}</div>
   {%- for x in step.cross %}
   <button type="button" class="xrow" id="{{ step.id }}-x{{ x.n }}" data-n="{{ x.n }}" aria-pressed="false" data-refs="{{ x.ranges | tojson | forceescape }}">
@@ -98,27 +98,27 @@
 {#- A Markdown code fence. Called from tutorial/mdrender.py, so it may only use `t`.
     kind: "code" (highlighted), "mermaid" (code + diagram), "html" (code + sandboxed preview, no scripts). -#}
 {% macro fence(kind, lang, label, rows, raw, marked, title, height) -%}
-<figure class="{{ 'mdcode' if kind == 'code' else 'cp' }}"{% if kind != 'code' %} data-kind="{{ kind }}" data-view="both"{% endif %}>
+<figure class="{{ 'mdcode' if kind == 'code' else 'cpv' }}"{% if kind != 'code' %} data-kind="{{ kind }}" data-view="both"{% endif %}>
   <div class="mdbar">
     <span class="lang">{{ label }}</span>
     {%- if title %}<span class="ftitle">{{ title }}</span>{% endif %}
     {%- if kind != 'code' %}
-    <span class="cp-views" role="group" aria-label="{{ t.cp_view }}">
+    <span class="cpv-views" role="group" aria-label="{{ t.cp_view }}">
       {%- for v in ('both', 'code', 'preview') %}<button type="button" data-view="{{ v }}" aria-pressed="{{ 'true' if v == 'both' else 'false' }}">{{ t | attr('cp_' ~ v) }}</button>{% endfor -%}
     </span>
     {%- endif %}
     <button class="copy" type="button" data-copy-src>{{ t.copy_code }}</button>
   </div>
-  <div class="cp-body">
+  <div class="cpv-body">
     <pre class="code" dir="ltr"><code>
     {%- for row in rows -%}
     <span class="ln{{ ' mark' if loop.index in marked }}" data-n="{{ loop.index }}"><span class="no">{{ loop.index }}</span><span class="tx">{{ row | safe }}</span><span class="mks"></span></span>
     {%- endfor -%}
     </code></pre>
     {%- if kind == 'mermaid' %}
-    <div class="cp-preview"><div class="mermaid-out" role="img" aria-label="{{ title or t.diagram }}"><p class="small">{{ t.diagram_loading }}</p></div></div>
+    <div class="cpv-preview"><div class="mermaid-out" role="img" aria-label="{{ title or t.diagram }}"><p class="small">{{ t.diagram_loading }}</p></div></div>
     {%- elif kind == 'html' %}
-    <div class="cp-preview"><iframe sandbox="" srcdoc="{{ raw }}" height="{{ height }}" title="{{ title or t.cp_preview }}" loading="lazy"></iframe></div>
+    <div class="cpv-preview"><iframe sandbox="" srcdoc="{{ raw }}" height="{{ height }}" title="{{ title or t.cp_preview }}" loading="lazy"></iframe></div>
     {%- endif %}
   </div>
   <script type="application/json" class="src">{{ raw | tojson }}</script>

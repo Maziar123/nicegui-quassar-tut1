@@ -1,4 +1,4 @@
-# Project commands. `just` lists them; `just <name>` runs one.
+# Project commands. `./run` (or `uv run just`) lists them; `./run <name>` runs one.
 # Everything runs inside the uv environment, with the versions pinned in uv.lock.
 # Optional .env file: XREF_CHROMIUM=/path/to/chromium, XREF_NPM_DIR=/path/to/npm/packages
 
@@ -23,13 +23,24 @@ shoot:
 build:
     uv run python tutorial/build.py
 
-# serve docs/ on http://localhost:8000
-serve port="8000":
-    uv run python -m http.server {{ port }} --directory docs
+# build the site, then serve it on http://localhost:8000 and open the browser (Ctrl+C stops)
+serve port="8000": build
+    @echo "Serving docs/ on http://localhost:{{ port }}  (Ctrl+C stops)"
+    (sleep 1; uv run python -m webbrowser -t "http://localhost:{{ port }}/" > /dev/null 2>&1 || true) &
+    uv run python -m http.server {{ port }} --bind 127.0.0.1 --directory docs
 
-# run one NiceGUI column, for example: just run 01-layout/01-one-box
-run step="01-layout/01-one-box":
-    uv run python content/{{ step }}/nicegui_app.py
+# list the steps with their numbers, folders and column files
+steps:
+    @uv run python tutorial/steps.py
+
+# run the NiceGUI column of a step, for example: ./run nicegui 1.1
+nicegui num="1.1":
+    @f="$(uv run python tutorial/steps.py {{ quote(num) }} nicegui)" && uv run python "$f"
+
+# open an HTML column of a step in the browser, for example: ./run open 1.1 vue
+open num="1.1" col="quasar":
+    @f="$(uv run python tutorial/steps.py {{ quote(num) }} {{ quote(col) }})" && echo "Opening $f" \
+      && uv run python -m webbrowser -t "file://$f"
 
 # fast tests (no browser)
 test *args:

@@ -9,7 +9,7 @@
   {{ step_html[st.id] }}
   {%- endfor %}
   {%- if sec.planned %}
-  <div class="card dashed coming"><h4>{{ t.coming_next }}</h4>
+  <div class="card dashed coming"><h3 class="card-title">{{ t.coming_next }}</h3>
     <ul>{% for p in sec.planned %}<li><span>{{ p.num }}</span>{{ p.name }}</li>{% endfor %}</ul></div>
   {%- endif %}
 </section>

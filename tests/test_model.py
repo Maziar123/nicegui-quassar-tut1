@@ -210,8 +210,11 @@ def test_bad_fence_info_is_an_error():
 
 
 def test_headings_move_down_inside_a_step():
-    out = mdrender.Markdown(fence_html=fake_fence).block('# Title\n\n## Sub\n')
-    assert '<h4>Title</h4>' in out and '<h5>Sub</h5>' in out
+    md = mdrender.Markdown(fence_html=fake_fence)
+    out = md.block('# Title\n\n## Sub\n')  # inside the index: a step title is h3, so # is h4
+    assert '<h4 class="md-h1">Title</h4>' in out and '<h5 class="md-h2">Sub</h5>' in out
+    out = md.block('# Title\n\n## Sub\n', top=2)  # on a step's own page: the title is h1, so # is h2
+    assert '<h2 class="md-h1">Title</h2>' in out and '<h3 class="md-h2">Sub</h3>' in out
 
 
 def test_inline_markdown_keeps_kbd_and_code():

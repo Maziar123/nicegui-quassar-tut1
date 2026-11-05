@@ -177,9 +177,9 @@ def test_mermaid_without_network_shows_the_code(open_page):
     if os.environ.get('XREF_NPM_DIR'):
         pytest.skip('XREF_NPM_DIR is set: Mermaid can load')
     pg = open_page()
-    if not pg.locator('.cp[data-kind="mermaid"]').count():
+    if not pg.locator('.cpv[data-kind="mermaid"]').count():
         pytest.skip('no Mermaid block')
-    pg.wait_for_function('document.querySelector(".cp[data-kind=mermaid]").dataset.view === "code"', timeout=5000)
+    pg.wait_for_function('document.querySelector(".cpv[data-kind=mermaid]").dataset.view === "code"', timeout=5000)
     assert 'internet' in pg.locator('.mermaid-out').first.inner_text()
 
 
@@ -198,8 +198,31 @@ def test_mermaid_draws_and_follows_the_theme(open_page):
 
 def test_html_preview_is_sandboxed_and_renders(open_page):
     pg = open_page()
-    frames = pg.locator('.cp[data-kind="html"] iframe')
+    frames = pg.locator('.cpv[data-kind="html"] iframe')
     if not frames.count():
         pytest.skip('no HTML preview block')
     assert frames.first.get_attribute('sandbox') == ''  # no scripts, no same-origin
-    assert pg.frame_locator('.cp[data-kind="html"] iframe').first.locator('body').inner_text().strip()
+    assert pg.frame_locator('.cpv[data-kind="html"] iframe').first.locator('body').inner_text().strip()
+
+
+# ---------------------------------------------------------------- accessibility (axe-core)
+@pytest.mark.parametrize('path', ['index.html', 'steps/1-1.html'])
+@pytest.mark.parametrize('scheme', ['light', 'dark'])
+@pytest.mark.parametrize('size', [(1920, 1080), (390, 844)])
+def test_accessibility_has_no_serious_problems(browser, site, path, scheme, size):
+    """axe-core: contrast, names and labels, heading order, one h1 per page, landmarks.
+    Fails on serious and critical problems; moderate ones are printed (pytest -s) but allowed."""
+    axe_mod = pytest.importorskip('axe_playwright_python.sync_playwright')
+    pg = browser.new_page(viewport={'width': size[0], 'height': size[1]}, color_scheme=scheme)
+    pg.route(re.compile(r'^https?://.*'), lambda r: r.abort())
+    pg.goto((site / path).as_uri())
+    pg.wait_for_timeout(300)
+    violations = axe_mod.Axe().run(pg).response['violations']
+    pg.close()
+    report = [
+        f'[{v["impact"]}] {v["id"]}: {v["help"]} -> ' + ', '.join(n['target'][0] for n in v['nodes'][:4])
+        for v in violations
+    ]
+    print('\n'.join(report))
+    serious = [r for r, v in zip(report, violations, strict=True) if v['impact'] in ('serious', 'critical')]
+    assert serious == []

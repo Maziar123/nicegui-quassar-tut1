@@ -181,12 +181,17 @@ class Markdown:
             )
         )
 
-    def block(self, text: str) -> Markup:
-        """A Markdown block. Headings move down by `heading_shift` (# -> h4 inside a step)."""
+    def block(self, text: str, top: int | None = None) -> Markup:
+        """A Markdown block. `# Title` becomes h<top> (default: 1 + heading_shift, so h4 inside a step),
+        and every heading gets class md-h<n> from its Markdown level, so it looks the same at any tag."""
+        shift = self.shift if top is None else top - 1
         tokens = self.md.parse(text)
         for t in tokens:
             if t.type in ('heading_open', 'heading_close'):
-                t.tag = f'h{min(6, int(t.tag[1]) + self.shift)}'
+                level = int(t.tag[1])
+                t.tag = f'h{min(6, level + shift)}'
+                if t.type == 'heading_open':
+                    t.attrSet('class', f'md-h{level}')
         return Markup(self.md.renderer.render(tokens, self.md.options, {}))
 
     def inline(self, text: str) -> Markup:

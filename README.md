@@ -20,11 +20,16 @@ More steps are planned and listed on the page: two boxes side by side, spacing, 
 
 Quasar and Vue columns: open the `.html` file in a browser. They load Vue and Quasar from jsDelivr, so they need internet the first time.
 
-NiceGUI columns need Python. The easy way is [uv](https://docs.astral.sh/uv/) (on Arch Linux: `sudo pacman -S uv`). It sets up Python and the exact package versions for you:
+NiceGUI columns need Python. The easy way is [uv](https://docs.astral.sh/uv/) (on Arch Linux: `sudo pacman -S uv`). It sets up Python and the exact package versions for you. From the project folder:
 
 ```bash
-uv run content/01-layout/01-one-box/nicegui_app.py   # opens http://localhost:8080
+./run nicegui 1.1     # the NiceGUI column of step 1.1, on http://localhost:8080
+./run open 1.1 vue    # an HTML column (quasar or vue) in your browser
+./run serve           # the whole tutorial on http://localhost:8000
+./run                 # every command
 ```
+
+The first `./run` sets everything up by itself. `./run X` is the same as `uv run just X`.
 
 Without uv, use a virtual environment (on Arch the system pip is blocked by PEP 668):
 
@@ -40,10 +45,10 @@ python content/01-layout/01-one-box/nicegui_app.py
 `docs/` is generated. Edit `content/` or `tutorial/`, then rebuild. All commands are in the `justfile`:
 
 ```bash
-uv sync && uv run just setup        # once: packages, git hooks, Chromium
-uv run just shoot                   # screenshots + pixel compare, after changing a column file
-uv run just build                   # writes docs/
-uv run just ci                      # lint, tests, browser tests, docs up to date (CI runs the same)
+./run setup                         # once: git hooks, Chromium
+./run shoot                         # screenshots + pixel compare, after changing a column file
+./run build                         # writes docs/
+./run ci                            # lint, tests, browser and accessibility tests, docs up to date (CI runs the same)
 ```
 
 The toolbox: uv (environment and lock), ruff (lint and format), pytest and Playwright (tests), prek (git hooks), just (commands). CI runs on GitHub Actions, and `docs/` can be published by the Pages workflow. The survey behind these choices is in [`design/tooling-2026-11.md`](design/tooling-2026-11.md).
@@ -61,7 +66,7 @@ tutorial/templates/      Jinja2 page, step and block templates
 tutorial/assets/         site.css and site.js, shared by every page
 tutorial/i18n/           UI strings (English now; more languages can be added)
 pyproject.toml, uv.lock  dependencies and tool settings; requirements.txt is exported from the lock
-justfile                 every command; .github/ holds CI, Pages deploy and Dependabot
+run, justfile            ./run <command>: every command; .github/ holds CI, Pages deploy and Dependabot
 docs/                    the built site (generated, committed for GitHub Pages)
 tests/                   pytest tests
 design/wireframe-tv.html the layout to follow
