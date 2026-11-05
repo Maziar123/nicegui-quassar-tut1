@@ -6,6 +6,7 @@ from ever colliding with a dict method in Jinja (t.copy once rendered "<built-in
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import tomllib
@@ -30,6 +31,14 @@ class ContentError(Exception):
     """Something in content/ is wrong. The message names the file."""
 
 
+def rel(path: Path) -> str:
+    """Path for messages: relative to the repo when inside it."""
+    try:
+        return path.relative_to(ROOT).as_posix()
+    except ValueError:
+        return str(path)
+
+
 # ------------------------------------------------------------------ toml + languages
 def merge(base, over):
     """Deep merge for translations: tables merge key by key, lists of tables item by item,
@@ -49,7 +58,7 @@ def read_toml(path: Path, lang: str, default: str) -> dict:
         if lang != default and tr.is_file():
             data = merge(data, tomllib.loads(tr.read_text()))
     except tomllib.TOMLDecodeError as e:
-        raise ContentError(f'{path.relative_to(ROOT)}: {e}') from None
+        raise ContentError(f'{rel(path)}: {e}') from None
     return data
 
 
@@ -126,6 +135,9 @@ class Site:
     def column(self, cid: str) -> Column:
         return next(c for c in self.columns if c.id == cid)
 
+    def names(self, ids) -> str:
+        return ', '.join(self.column(cid).name for cid in ids)
+
 
 @dataclass
 class Code:
@@ -148,9 +160,13 @@ class Code:
 
     @property
     def rows(self) -> list[str]:
-        """Highlighted HTML, one string per line. Pygments closes and reopens spans at line ends."""
-        html = highlight(self.text, LEXERS[self.ext](), HtmlFormatter(nowrap=True))
-        return [r or ' ' for r in html.rstrip('\n').split('\n')]
+        """Highlighted HTML, one string per line. Pygments closes and reopens spans at line ends.
+        stripnl=False keeps leading blank lines, so row n is always line n."""
+        html = highlight(self.text, LEXERS[self.ext](stripnl=False), HtmlFormatter(nowrap=True))
+        rows = [r or ' ' for r in html.rstrip('\n').split('\n')]
+        if len(rows) != self.nlines:
+            raise ContentError(f'{self.file}: highlighting gave {len(rows)} rows for {self.nlines} lines')
+        return rows
 
 
 @dataclass
@@ -195,6 +211,7 @@ class Shots:
     date: str
     compared_to: str
     libraries: dict[str, dict]
+    stale: list[str] = field(default_factory=list)       # columns whose file changed after the screenshot
     urls: dict[str, str] = field(default_factory=dict)   # column id -> path under docs/assets/, set by build
 
 
@@ -302,7 +319,7 @@ def load_sections(site: Site) -> list[Section]:
 
 def load_step(tdir: Path, num: str, site: Site) -> Step:
     d = read_toml(tdir / 'step.toml', site.lang, site.default_lang)
-    where = tdir.relative_to(ROOT).as_posix()
+    where = rel(tdir)
     for key in ('name', 'intro'):
         if key not in d:
             raise ContentError(f'{where}/step.toml: missing "{key}"')
@@ -320,18 +337,29 @@ def load_step(tdir: Path, num: str, site: Site) -> Step:
             spec = x.get(cid)
             if spec is None:
                 continue
+            here = f'{where}/step.toml cross-comment {n} ({cid})'
+            if not isinstance(spec, dict) or ('at' in spec) == ('builtin' in spec):
+                raise ContentError(f'{here}: write {{ at = [["start"]], hint = "..." }} or {{ builtin = "..." }}')
             if 'builtin' in spec:
+                if not isinstance(spec['builtin'], str):
+                    raise ContentError(f'{here}: builtin must be text')
                 refs[cid] = Ref(builtin=spec['builtin'])
                 continue
+            at = spec['at']
+            if not isinstance(at, list) or not at or not all(
+                    isinstance(m, list) and m and all(isinstance(x_, str) and x_ for x_ in m) for m in at):
+                raise ContentError(f'{here}: at must be a list of ranges like [["start"], ["start", "end"]], got {at!r}')
             if cid not in code:
                 raise ContentError(f'{where}: cross-comment {n} points at {cid}, but there is no {cid} file')
             c = code[cid]
-            ranges = [find(c.lines, m, f'{where}/{c.file} cross-comment {n}') for m in spec['at']]
+            ranges = [find(c.lines, m, f'{where}/{c.file} cross-comment {n}') for m in at]
             refs[cid] = Ref(ranges=ranges, hint=spec.get('hint', ''))
             for a, b in ranges:
                 for ln in range(a, b + 1):
                     if n not in c.marks.setdefault(ln, []):
                         c.marks[ln].append(n)
+        if 'idea' not in x:
+            raise ContentError(f'{where}/step.toml cross-comment {n}: missing "idea"')
         cross.append(Cross(n=n, idea=x['idea'], say=x.get('say', ''), refs=refs))
 
     pic = tdir / 'picture.svg'
@@ -346,16 +374,27 @@ def load_step(tdir: Path, num: str, site: Site) -> Step:
         code=code, cross=cross, shots=load_shots(tdir, site.column_ids))
 
 
+def file_hash(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
 def load_shots(tdir: Path, col_ids: list[str]) -> Shots | None:
     res = tdir / 'shots' / 'result.json'
     if not res.is_file():
         return None
     r = json.loads(res.read_text())
     files = {cid: tdir / 'shots' / f'{cid}.png' for cid in col_ids if (tdir / 'shots' / f'{cid}.png').is_file()}
+    stale = []
+    for cid, digest in r.get('sources', {}).items():
+        f = column_file(tdir, cid)
+        if f is None or file_hash(f) != digest:
+            stale.append(cid)
+    if 'sources' not in r:          # made before shoot.py recorded hashes: cannot tell, so say so
+        stale = list(files)
     diff = r['diff_pixels']
     return Shots(same=all(v == 0 for v in diff.values()), diff=diff, files=files,
                  w=r['view']['width'], h=r['view']['height'], scale=r['scale'], date=r['tested'],
-                 compared_to=r['compared_to'], libraries=r['libraries'])
+                 compared_to=r['compared_to'], libraries=r['libraries'], stale=stale)
 
 
 def fill_tested(site: Site, sections: list[Section]) -> None:

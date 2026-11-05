@@ -99,6 +99,13 @@ def route_cdn(page, npm_dir):
 
 def render(browser, url, npm_dir):
     page = browser.new_page(viewport=VIEW, device_scale_factor=SCALE)
+    try:
+        return _render(page, url, npm_dir)
+    finally:
+        page.close()
+
+
+def _render(page, url, npm_dir):
     errors = []
     page.on('pageerror', lambda e: errors.append(str(e)))
     page.on('requestfailed', lambda r: errors.append(f'{r.url}: {r.failure}'))
@@ -117,19 +124,22 @@ def render(browser, url, npm_dir):
       if (v) out.vue = v;
       return out;
     }''')
-    png = page.screenshot()
-    page.close()
-    return png, libs
+    return page.screenshot(), libs
 
 
 def shoot_step(browser, step, npm_dir, columns):
+    files = {col: model.column_file(step, col) for col in columns}
+    files = {col: f for col, f in files.items() if f}
+    if not files:
+        print(f'{step.relative_to(ROOT)}: no column files, skipped')
+        return
     shots = step / 'shots'
     shots.mkdir(exist_ok=True)
+    for old in shots.glob('*.png'):          # a column that no longer exists must not keep its picture
+        if old.stem not in files:
+            old.unlink()
     pngs, libs = {}, {}
-    for col in columns:
-        f = model.column_file(step, col)
-        if not f:
-            continue
+    for col, f in files.items():
         if f.suffix == '.py':
             port = free_port()
             log = tempfile.TemporaryFile('w+')   # a file, not a pipe: a full pipe would block the server
@@ -160,7 +170,8 @@ def shoot_step(browser, step, npm_dir, columns):
         'tested': date.today().isoformat(),
         'view': VIEW, 'scale': SCALE,
         'compared_to': first,
-        'diff_pixels': diff,
+        'diff_pixels': diff,          # -1 means the screenshots have different sizes
+        'sources': {c: model.file_hash(f) for c, f in files.items()},   # lets the build spot stale shots
         'libraries': libs,
         'npm_dir_used': bool(npm_dir),
     }

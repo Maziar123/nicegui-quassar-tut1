@@ -10,6 +10,11 @@
     "nicegui": 0,
     "vue": 0
   },
+  "sources": {
+    "quasar": "096c092b99558ddbbeb46da19816e7dd861050869619186be7a1f57309a1ede0",
+    "nicegui": "9f8a4d19c984124c39db4145d1bf7a775edcf1a7e6e77a9d6ee90644e2240b48",
+    "vue": "3489a1ba88afb346cb78dff8ba0aaf17851ab59ffa5f175b060b708ba868094f"
+  },
   "libraries": {
     "quasar": {
       "quasar": "2.35.2",

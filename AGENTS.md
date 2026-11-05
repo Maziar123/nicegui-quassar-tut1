@@ -57,9 +57,11 @@ python -m pytest                      # before every commit
 python content/01-layout/01-one-box/nicegui_app.py   # run one NiceGUI column
 ```
 
-`build.py --out DIR` writes somewhere else (the tests use a temp folder). The build owns
-`index.html`, `steps/`, `assets/` and `<lang>/` in its output folder and rewrites them from scratch,
-so a removed step leaves nothing behind. Other files there (a `CNAME`, say) are kept.
+`build.py --out DIR` writes somewhere else (the tests use a temp folder). The build renders into a
+temporary folder and swaps the result in only when everything worked, so a failed build never leaves a
+half-empty `docs/`. `DIR/.xref-build.json` lists what the build owns (`index.html`, `steps/`, `assets/`,
+`<lang>/`); those are replaced, a language removed from `site.toml` is cleaned up, and other files
+(a `CNAME`, say) are kept. A non-empty folder without that manifest is refused (`docs/` itself is allowed).
 
 `shoot.py` options: `--chromium PATH` uses an existing Chromium. `--npm-dir DIR` serves the CDN files
 from unpacked npm packages (`DIR/vue/`, `DIR/quasar/`) when jsDelivr / unpkg are blocked. They are the
@@ -141,11 +143,15 @@ matches. After editing a column file, run the build and fix any marker it report
   `python -m pytest`, and commit the source and the regenerated `docs/` together.
 - Every column file must run on its own. Test before committing:
   - all columns: `python tutorial/shoot.py`. It must report `identical`, unless the step is about a
-    difference, in which case say so in the step text.
+    difference, in which case say so in the step text. It stores a sha256 of each column file; when a
+    file changes later, the build warns and the page shows the screenshot as out of date.
   - NiceGUI columns also by hand: run with `show=False, reload=False` and fetch the page with curl.
 - Never name a column file `nicegui.py`: it hides the real `nicegui` package. Use `nicegui_app.py`.
 - Look at the built page at 1920 × 1080, 1440 × 900 and 390 × 844 in both themes, and check the browser
-  console for errors.
+  console for errors. Also scroll with the mouse wheel on a narrow screen, and try text size A+ three
+  times: the page must never scroll sideways.
+- In site.js, never call `scrollIntoView()` on something inside the sticky rail: it scrolls the window
+  too and locks the page on narrow screens. Scroll the rail itself.
 - Quasar sets `box-sizing: border-box` on everything. Plain Vue does not, so a plain column writes it
   by hand to match.
 - Audience is students: short sentences, plain words, no em-dash asides on the page.

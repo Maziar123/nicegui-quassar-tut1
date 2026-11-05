@@ -221,3 +221,6 @@ __marimo__/
 
 # NiceGUI local storage
 .nicegui/
+
+# tutorial/build.py temp folder (only left behind if a build is killed)
+.xref-build-*/

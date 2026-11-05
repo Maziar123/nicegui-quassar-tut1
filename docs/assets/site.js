@@ -153,21 +153,36 @@
   document.querySelectorAll('a[data-x]').forEach(a => a.addEventListener('click', e => {
     if (pinFromHash(a.dataset.x, true)) { e.preventDefault(); history.replaceState(null, '', '#' + a.dataset.x); }
   }));
-  pinFromHash(decodeURIComponent(location.hash.slice(1)), false);
+  let hash = location.hash.slice(1);
+  try { hash = decodeURIComponent(hash); } catch (e) {}   // a malformed hash (#100%) must not stop the script
+  pinFromHash(hash, false);
 
   // ---------- where am I: rail highlight + current step
   const targets = [...document.querySelectorAll('#summary, .section, .step')];
+  const rail = document.querySelector('.rail');
   const railLinks = new Map([...document.querySelectorAll('.rail a[data-target]')].map(a => [a.dataset.target, a]));
-  let current = null;
+  let current = null, active = null;
+  // Keep the active link visible by scrolling the rail only. scrollIntoView() would also scroll
+  // the window, and with the sticky rail on narrow screens that locked the page in place.
+  function revealInRail(a) {
+    if (!rail) return;
+    const r = rail.getBoundingClientRect(), l = a.getBoundingClientRect();
+    if (rail.scrollWidth > rail.clientWidth && (l.left < r.left || l.right > r.right))          // narrow: horizontal bar
+      rail.scrollTo({ left: rail.scrollLeft + l.left - r.left - rail.clientWidth / 3 });
+    else if (rail.scrollHeight > rail.clientHeight && (l.top < r.top || l.bottom > r.bottom))  // wide: vertical list
+      rail.scrollTo({ top: rail.scrollTop + l.top - r.top - rail.clientHeight / 3 });
+  }
   function track() {
     if (!targets.length) return;
     const line = innerHeight * 0.3;
     let at = targets[0];
     for (const t of targets) if (t.getBoundingClientRect().top <= line) at = t;
     current = at.classList.contains('step') ? at : null;
-    railLinks.forEach(a => a.classList.remove('on'));
     const a = railLinks.get(at.id) || railLinks.get(document.body.dataset.page);
-    if (a) { a.classList.add('on'); a.scrollIntoView({ block: 'nearest', inline: 'nearest' }); }
+    if (a === active) return;                            // nothing changed: touch nothing
+    active?.classList.remove('on');
+    active = a || null;
+    if (a) { a.classList.add('on'); revealInRail(a); }
   }
   let ticking = false;
   addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(() => { ticking = false; track(); }); } }, { passive: true });

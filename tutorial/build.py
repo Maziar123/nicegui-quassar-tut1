@@ -8,13 +8,18 @@ Output (all generated, never edit by hand)
   DIR/assets/               site.css, site.js and the screenshots the pages use
   DIR/<lang>/...            the same pages for every extra language in content/site.toml
 
-The build owns DIR/index.html, DIR/steps/, DIR/assets/ and DIR/<lang>/ and rewrites them
-from scratch each time, so a removed step leaves nothing behind. Content loading lives in
-model.py; this file only renders.
+Safety: everything is rendered into a temporary folder first and swapped in only when the
+whole build worked, so a failed build never leaves a half-empty docs/. DIR/.xref-build.json
+lists what the build owns; those entries are replaced, a language removed from site.toml is
+cleaned up, and every other file in DIR (a CNAME, say) is kept. A non-empty DIR the build
+does not own is refused. Content loading lives in model.py; this file only renders.
 """
 import argparse
+import json
+import re
 import shutil
 import sys
+import tempfile
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
@@ -25,6 +30,10 @@ import model  # noqa: E402
 
 TEMPLATES = model.HERE / 'templates'
 ASSETS = model.HERE / 'assets'
+MANIFEST = '.xref-build.json'
+DEFAULT_OUT = model.ROOT / 'docs'
+LEGACY_OWNED = ['index.html', 'steps', 'assets']      # docs/ before the manifest existed
+SAFE_NAME = re.compile(r'[A-Za-z0-9][A-Za-z0-9._-]*')
 UI_KEYS_FOR_JS = ('copy_code', 'copied', 'press_ctrl_c', 'theme', 'theme_auto', 'theme_light', 'theme_dark')
 
 
@@ -110,37 +119,70 @@ def build_language(lang: str, out_root: Path, env: Environment) -> list[Path]:
 
     if is_default:
         for st in steps:
+            where = model.rel(st.dir)
             if not st.shots:
-                print(f'warning: {st.dir.relative_to(model.ROOT)} has no screenshots yet. Run: python tutorial/shoot.py')
+                print(f'warning: {where} has no screenshots yet. Run: python tutorial/shoot.py')
+            elif st.shots.stale:
+                print(f'warning: {where}: {site.names(st.shots.stale)} changed after the screenshots. Run: python tutorial/shoot.py')
     return written
 
 
-def clean(out_root: Path, languages: list[str]):
-    """Remove only what the build owns, so other files in docs/ (a CNAME, say) survive."""
-    for p in [out_root / 'steps', out_root / 'assets', *(out_root / lang for lang in languages[1:])]:
-        if p.is_dir():
-            shutil.rmtree(p)
-    (out_root / 'index.html').unlink(missing_ok=True)
+def owned_entries(out_root: Path) -> list[str]:
+    """Top-level names in out_root that an earlier build wrote."""
+    f = out_root / MANIFEST
+    if f.is_file():
+        names = json.loads(f.read_text()).get('owned', [])
+    elif out_root == DEFAULT_OUT:
+        names = LEGACY_OWNED
+    else:
+        names = []
+    return [n for n in names if SAFE_NAME.fullmatch(n)]   # never a path, never ".."
+
+
+def check_out(out_root: Path):
+    if not out_root.exists() or out_root == DEFAULT_OUT or (out_root / MANIFEST).is_file():
+        return
+    if any(out_root.iterdir()):
+        raise model.ContentError(f'{out_root} is not empty and was not made by this build. '
+                                 f'Use an empty folder, or docs/.')
 
 
 def build(out_root: Path) -> list[Path]:
+    out_root = out_root.resolve()
+    check_out(out_root)
     site = model.load_site()
-    clean(out_root, site.languages)
-    (out_root / 'assets').mkdir(parents=True)
-    for name in ('site.css', 'site.js'):
-        shutil.copyfile(ASSETS / name, out_root / 'assets' / name)
-    env = make_env()
-    written = []
-    for lang in site.languages:
-        pages = build_language(lang, out_root, env)
-        print(f'[{lang}] {len(pages)} pages')
-        written += pages
+    out_root.parent.mkdir(parents=True, exist_ok=True)
+    tmp = Path(tempfile.mkdtemp(prefix='.xref-build-', dir=out_root.parent))
+    try:
+        (tmp / 'assets').mkdir()
+        for name in ('site.css', 'site.js'):
+            shutil.copyfile(ASSETS / name, tmp / 'assets' / name)
+        env = make_env()
+        written = []
+        for lang in site.languages:
+            pages = build_language(lang, tmp, env)
+            print(f'[{lang}] {len(pages)} pages')
+            written += [out_root / f.relative_to(tmp) for f in pages]
+        # everything rendered: swap it in
+        new = sorted(p.name for p in tmp.iterdir())
+        out_root.mkdir(exist_ok=True)
+        for name in set(owned_entries(out_root)) | set(new):
+            target = out_root / name
+            if target.is_dir() and not target.is_symlink():
+                shutil.rmtree(target)
+            elif target.exists() or target.is_symlink():
+                target.unlink()
+        for name in new:
+            shutil.move(tmp / name, out_root / name)
+        (out_root / MANIFEST).write_text(json.dumps({'owned': new}, indent=2) + '\n')
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
     return written
 
 
 def main():
     ap = argparse.ArgumentParser(description='Build the tutorial site.')
-    ap.add_argument('--out', type=Path, default=model.ROOT / 'docs', help='output folder (default: docs/)')
+    ap.add_argument('--out', type=Path, default=DEFAULT_OUT, help='output folder (default: docs/)')
     out = ap.parse_args().out.resolve()
     try:
         written = build(out)

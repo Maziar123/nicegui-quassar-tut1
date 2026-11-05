@@ -61,7 +61,7 @@ html { scroll-padding-top: calc(var(--bar) + 12px); }
 body { margin: 0; background: var(--bg); color: var(--ink); font: var(--fs)/1.55 var(--font-body); }
 h1, h2, h3, h4 { font-family: var(--font-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
 code, pre, kbd { font-family: var(--font-mono); font-variant-ligatures: none; }
-p code, li code, td code, .colnote code, .ref code, .shared code { font-size: .88em; background: var(--soft); padding: .05em .35em; border-radius: 5px; }
+p code, li code, td code, .colnote code, .ref code, .shared code { overflow-wrap: anywhere; font-size: .88em; background: var(--soft); padding: .05em .35em; border-radius: 5px; }
 kbd { font-size: .78em; font-weight: 600; border: 1px solid var(--line); border-bottom-width: 3px; border-radius: 5px; padding: 0 .4em; background: var(--surface); color: var(--ink); }
 a { color: var(--c-quasar); }
 button { font: inherit; color: inherit; }
@@ -76,15 +76,19 @@ main:focus { outline: none; }
 /* ---------- top bar */
 .topbar { position: sticky; top: 0; z-index: 30; height: var(--bar); display: flex; align-items: center; gap: max(10px, var(--u));
   padding-inline: var(--gut); background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
-.brand { font: 700 max(calc(15px * var(--z)), calc(var(--t) * 1.05)) var(--font-display); white-space: nowrap; margin-inline-end: max(6px, var(--u)); text-decoration: none; color: var(--ink); }
-.toggles { display: flex; gap: max(6px, calc(var(--u) * .5)); align-items: center; }
+/* At large text sizes the bar must shrink, never push the page sideways: brand, toggles and key hints
+   give way (min-width: 0), the tools never do. */
+.brand { font: 700 max(calc(15px * var(--z)), calc(var(--t) * 1.05)) var(--font-display); white-space: nowrap; margin-inline-end: max(6px, var(--u)); text-decoration: none; color: var(--ink);
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; flex: 0 1 auto; }
+.toggles { display: flex; gap: max(6px, calc(var(--u) * .5)); align-items: center; min-width: 0; overflow-x: auto; scrollbar-width: none; flex: 0 1 auto; }
 .toggles .lbl { font-size: var(--fs-small); color: var(--muted); }
 .toggle { display: inline-flex; align-items: center; gap: .45em; font: 600 var(--fs-small) var(--font-mono); padding-block: .25em; padding-inline: .35em .9em;
   border-radius: 999px; border: 2px solid var(--c); background: var(--cb); cursor: pointer; }
 .toggle kbd { font-size: .85em; }
 .toggle[aria-pressed="false"] { background: transparent; border-style: dashed; color: var(--muted); text-decoration: line-through; }
-.keys { margin-inline-start: auto; display: flex; gap: .5em; align-items: center; font-size: var(--fs-small); color: var(--muted); white-space: nowrap; }
-.tools { display: flex; gap: 6px; align-items: center; }
+.keys { margin-inline-start: auto; display: flex; gap: .5em; align-items: center; font-size: var(--fs-small); color: var(--muted); white-space: nowrap;
+  min-width: 0; overflow: hidden; flex: 0 3 auto; }
+.tools { display: flex; gap: 6px; align-items: center; flex: none; }
 .keys + .tools { margin-inline-start: max(8px, var(--u)); }
 .tool { display: inline-flex; align-items: center; justify-content: center; gap: .35em; min-width: 2.4em; height: 2.2em; padding-inline: .6em; border-radius: 9px; border: 1px solid var(--line);
   background: var(--surface); font: 600 var(--fs-small) var(--font-body); cursor: pointer; white-space: nowrap; }
@@ -196,7 +200,7 @@ h1 small { display: block; font-size: .45em; color: var(--muted); margin-top: .3
 .tab { flex: 1; font: 600 var(--fs-small) var(--font-mono); padding: .5em; border-radius: 10px 10px 0 0; border: 2px solid var(--c); border-bottom: 0; background: transparent; cursor: pointer; }
 .tab[aria-pressed="true"] { background: var(--cb); }
 .sbs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: max(12px, calc(var(--u) * 1.2)); margin-top: calc(var(--gut) * 1.2); align-items: start; }
-.colhead { display: flex; align-items: baseline; gap: .7em; padding: .5em .9em; border: 2px solid var(--c); border-bottom: 0; border-radius: 12px 12px 0 0; background: var(--cb); }
+.colhead { display: flex; flex-wrap: wrap; align-items: baseline; gap: .3em .7em; padding: .5em .9em; border: 2px solid var(--c); border-bottom: 0; border-radius: 12px 12px 0 0; background: var(--cb); }
 .colhead b { font: 700 1.15em var(--font-display); }
 .colhead .meta { font: var(--fs-small) var(--font-mono); color: var(--muted); }
 .copy { margin-inline-start: auto; font: 500 var(--fs-small) var(--font-body); padding: .15em .7em; border-radius: 7px; border: 1px solid var(--c); background: var(--surface); cursor: pointer; }
@@ -233,6 +237,7 @@ h1 small { display: block; font-size: .45em; color: var(--muted); margin-top: .3
 .shared .chips { display: flex; gap: .5em; flex-wrap: wrap; margin-bottom: .6em; }
 .shared img { display: block; width: min(100%, max(480px, calc(var(--u) * 25))); height: auto; }
 .shot-one { justify-self: end; }
+.stale { margin: .4em 0; padding: .5em .8em; border-radius: 8px; background: color-mix(in srgb, var(--hl) 22%, var(--surface)); border: 1px solid var(--hl); font-size: var(--fs-small); }
 .shared.differ { grid-template-columns: minmax(0, 1fr); }
 .shots-each { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: max(12px, var(--u)); }
 .shots-each img { width: 100%; }

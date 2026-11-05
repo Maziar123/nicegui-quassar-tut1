@@ -54,10 +54,13 @@
     <h4>{{ t.shared_shot }}</h4>
     <p>{{ t.shot_same.format(n=s.files | length) if s.same else t.shot_differ }}</p>
     <div class="chips">
-    {%- for c in cols if c.id in s.files %}
-      {{ chip(c.id, c.name ~ ' ✓' if s.diff.get(c.id, 0) == 0 else c.name ~ ' · ' ~ t.px_differ.format(n=s.diff[c.id])) }}
+    {%- for c in cols if c.id in s.files %}{% set d = s.diff.get(c.id, 0) %}
+      {{ chip(c.id, c.name ~ ' ✓' if d == 0 else c.name ~ ' · ' ~ (t.size_differs if d < 0 else t.px_differ.format(n=d))) }}
     {%- endfor %}
     </div>
+    {%- if s.stale %}
+    <p class="stale" role="status">⚠ {{ t.shot_stale.format(names=site.names(s.stale)) }}</p>
+    {%- endif %}
     <p class="small">{{ t.shot_meta.format(w=s.w, h=s.h, scale=s.scale, date=s.date) }}</p>
   </div>
   <div class="{{ 'shot-one' if s.same else 'shots-each' }}">

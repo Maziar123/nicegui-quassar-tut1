@@ -76,10 +76,11 @@ def test_bad_language_code_is_refused(monkeypatch):
 
 
 def test_build_smoke(tmp_path):
-    (tmp_path / 'CNAME').write_text('keep me')
+    build.build(tmp_path)
+    (tmp_path / 'CNAME').write_text('keep me')                        # added by hand after the first build
     written = build.build(tmp_path)
     index = (tmp_path / 'index.html').read_text()
-    assert (tmp_path / 'CNAME').read_text() == 'keep me'              # the build only removes what it owns
+    assert (tmp_path / 'CNAME').read_text() == 'keep me'              # the build only replaces what it owns
     assert (tmp_path / 'assets' / 'site.css').is_file()
     assert 'built-in method' not in index and 'Undefined' not in index
     for f in written:
@@ -90,3 +91,71 @@ def test_build_smoke(tmp_path):
     first = {f: f.read_text() for f in written}
     build.build(tmp_path)
     assert {f: f.read_text() for f in written} == first
+
+
+# ---------------------------------------------------------------- regressions from the code review
+def test_rows_keep_leading_blank_lines():
+    code = model.Code(file='a.py', ext='.py', text='\n\nx = 1\n')
+    assert code.nlines == 3 and len(code.rows) == 3          # row n is line n
+
+
+def make_step(tmp_path, cross_toml):
+    d = tmp_path / 'step'
+    d.mkdir()
+    (d / 'vue.html').write_text('<div id="app">\n</div>\n')
+    (d / 'step.toml').write_text(f'name = "T"\nintro = ["x"]\n\n[[cross]]\nidea = "I"\n{cross_toml}\n')
+    return d
+
+
+@pytest.mark.parametrize('spec', [
+    'vue = { at = ["ab"] }',                  # a string where a range list belongs
+    'vue = { hint = "no at, no builtin" }',
+    'vue = { at = [["app"]], builtin = "both" }',
+    'vue = "just text"',
+    'vue = { at = [[""]] }',
+])
+def test_bad_cross_spec_is_a_clear_error(tmp_path, spec):
+    with pytest.raises(model.ContentError):
+        model.load_step(make_step(tmp_path, spec), '9.9', model.load_site())
+
+
+def test_good_cross_spec(tmp_path):
+    st = model.load_step(make_step(tmp_path, 'vue = { at = [["app", "=</div>"]], hint = "h" }'), '9.9', model.load_site())
+    assert st.cross[0].refs['vue'].ranges == [(1, 2)]
+
+
+def test_failed_build_keeps_the_old_site(tmp_path, monkeypatch):
+    build.build(tmp_path)
+    before = (tmp_path / 'index.html').read_text()
+
+    def broken(site):
+        raise model.ContentError('bad marker')
+    monkeypatch.setattr(model, 'load_sections', broken)
+    with pytest.raises(model.ContentError):
+        build.build(tmp_path)
+    assert (tmp_path / 'index.html').read_text() == before   # nothing was deleted
+    assert (tmp_path / 'steps').is_dir()
+    assert not list(tmp_path.parent.glob('.xref-build-*'))   # temp folder cleaned up
+
+
+def test_refuses_a_folder_it_does_not_own(tmp_path):
+    (tmp_path / 'important.txt').write_text('mine')
+    with pytest.raises(model.ContentError):
+        build.build(tmp_path)
+    assert (tmp_path / 'important.txt').read_text() == 'mine'
+
+
+def test_removed_language_folder_is_cleaned_up(tmp_path):
+    build.build(tmp_path)
+    (tmp_path / 'fa').mkdir()                                  # pretend an earlier build made docs/fa/
+    (tmp_path / 'fa' / 'index.html').write_text('old')
+    manifest = tmp_path / build.MANIFEST
+    manifest.write_text(manifest.read_text().replace('"assets"', '"assets", "fa"'))
+    build.build(tmp_path)
+    assert not (tmp_path / 'fa').exists()
+
+
+def test_manifest_cannot_point_outside(tmp_path):
+    build.build(tmp_path)
+    (tmp_path / build.MANIFEST).write_text('{"owned": ["..", "/etc", "a/b", "index.html"]}')
+    assert build.owned_entries(tmp_path) == ['index.html']
