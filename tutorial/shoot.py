@@ -22,6 +22,7 @@ import re
 import socket
 import subprocess
 import sys
+import tempfile
 import time
 import urllib.request
 from datetime import date
@@ -30,11 +31,12 @@ from pathlib import Path
 
 from playwright.sync_api import sync_playwright
 
-ROOT = Path(__file__).resolve().parent.parent
-CONTENT = ROOT / 'content'
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import model  # noqa: E402
+
+ROOT = model.ROOT
 VIEW = {'width': 480, 'height': 180}   # CSS px; enough for the examples, same for every column
 SCALE = 2                              # device pixels per CSS px, sharp on 4K / 8K screens
-COLUMNS = ['quasar', 'nicegui', 'vue']
 CDN = re.compile(r'https://(?:cdn\.jsdelivr\.net/npm|unpkg\.com)/(@?[^@/]+)@[^/]+/(.+)')
 
 # Runs a NiceGUI column file with show=False, reload=False and a chosen port.
@@ -69,11 +71,12 @@ def free_port():
         return s.getsockname()[1]
 
 
-def wait_http(url, proc, timeout=30):
+def wait_http(url, proc, log, timeout=30):
     end = time.time() + timeout
     while time.time() < end:
         if proc.poll() is not None:
-            raise RuntimeError(f'NiceGUI exited early:\n{proc.stdout.read()}')
+            log.seek(0)
+            raise RuntimeError(f'NiceGUI exited early:\n{log.read()}')
         try:
             with urllib.request.urlopen(url, timeout=1):
                 return
@@ -108,7 +111,10 @@ def render(browser, url, npm_dir):
     libs = page.evaluate('''async () => {
       const out = {};
       if (window.Quasar && Quasar.version) out.quasar = Quasar.version;
-      if (window.Vue && Vue.version) out.vue = Vue.version;
+      // Vue stores the app on its mount element, which also works for ES-module pages
+      const app = document.querySelector('[data-v-app]');
+      const v = (app && app.__vue_app__ && app.__vue_app__.version) || (window.Vue && Vue.version);
+      if (v) out.vue = v;
       return out;
     }''')
     png = page.screenshot()
@@ -116,25 +122,30 @@ def render(browser, url, npm_dir):
     return png, libs
 
 
-def shoot_step(browser, step, npm_dir):
+def shoot_step(browser, step, npm_dir, columns):
     shots = step / 'shots'
     shots.mkdir(exist_ok=True)
     pngs, libs = {}, {}
-    for col in COLUMNS:
-        files = sorted(step.glob(f'{col}*.*'))
-        if not files:
+    for col in columns:
+        f = model.column_file(step, col)
+        if not f:
             continue
-        f = files[0]
         if f.suffix == '.py':
             port = free_port()
+            log = tempfile.TemporaryFile('w+')   # a file, not a pipe: a full pipe would block the server
             proc = subprocess.Popen([sys.executable, '-c', NICEGUI_RUNNER, str(f), str(port)],
-                                    cwd=step, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+                                    cwd=step, stdout=log, stderr=subprocess.STDOUT, text=True)
             try:
-                wait_http(f'http://127.0.0.1:{port}/', proc)
+                wait_http(f'http://127.0.0.1:{port}/', proc, log)
                 pngs[col], libs[col] = render(browser, f'http://127.0.0.1:{port}/', None)
             finally:
                 proc.terminate()
-                proc.wait(10)
+                try:
+                    proc.wait(10)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+                    proc.wait()
+                log.close()
             libs[col]['nicegui'] = version('nicegui')
         else:
             pngs[col], libs[col] = render(browser, f.as_uri(), npm_dir)
@@ -163,11 +174,12 @@ def main():
     ap.add_argument('--npm-dir', type=Path)
     ap.add_argument('--chromium')
     args = ap.parse_args()
-    steps = sorted(p.parent for p in CONTENT.glob('*/*/step.toml'))
+    site = model.load_site()
+    steps = model.step_dirs()
     with sync_playwright() as p:
         browser = p.chromium.launch(executable_path=args.chromium) if args.chromium else p.chromium.launch()
         for step in steps:
-            shoot_step(browser, step, args.npm_dir)
+            shoot_step(browser, step, args.npm_dir, site.column_ids)
         browser.close()
 
 

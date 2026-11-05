@@ -38,6 +38,7 @@ pip install -r requirements-dev.txt
 playwright install chromium         # once
 python tutorial/shoot.py            # screenshots + pixel compare, after changing a column file
 python tutorial/build.py            # writes docs/
+python -m pytest                    # checks markers, translations and the build
 ```
 
 How it fits together, how to add a step, the template blocks, and how to add a language are in [`AGENTS.md`](AGENTS.md). The layout follows [`design/wireframe-tv.html`](design/wireframe-tv.html).
@@ -46,12 +47,14 @@ How it fits together, how to add a step, the template blocks, and how to add a l
 
 ```
 content/                 the tutorial text, the column files and their screenshots
-tutorial/build.py        content/ + templates -> docs/
+tutorial/model.py        reads content/ into typed objects
+tutorial/build.py        renders them with the templates into docs/
 tutorial/shoot.py        screenshots every column and compares the pixels
 tutorial/templates/      Jinja2 page, step and block templates
 tutorial/assets/         site.css and site.js, shared by every page
 tutorial/i18n/           UI strings (English now; more languages can be added)
 docs/                    the built site (generated, committed for GitHub Pages)
+tests/                   pytest tests
 design/wireframe-tv.html the layout to follow
 steps/                   older stand-alone samples, kept as material for Section 2
 ```
@@ -60,4 +63,4 @@ To publish with GitHub Pages: Settings → Pages → Deploy from a branch → `m
 
 ## Tested with
 
-NiceGUI 4.0.0 (bundles Vue 3.5.44 and Quasar 2.35.2), Vue 3.5.45 and Quasar 2.35.2 from the CDN, FastAPI 0.162.0, uvicorn 0.54.0, Jinja2 3.1.6, Pygments 2.21.0, Playwright 1.64.1 with headless Chromium. Tested 5 November 2026. In Step 1.1, the three columns render identical pixels.
+NiceGUI 4.0.0 (bundles Vue 3.5.44 and Quasar 2.35.2), Vue 3.5.45 and Quasar 2.35.2 from the CDN, FastAPI 0.162.0, uvicorn 0.54.0, Jinja2 3.1.6, Pygments 2.21.0, Playwright 1.64.1, pytest 9.2.0 with headless Chromium. Tested 5 November 2026. In Step 1.1, the three columns render identical pixels.

@@ -23,6 +23,12 @@ source .venv/bin/activate
 pip install -r requirements.txt"""
 setup_note = "Quasar and Vue columns need only a browser. The NiceGUI column needs Python. On Arch Linux, use a virtual environment: the system pip is blocked by PEP 668."
 
+# One line from each column for the picture at the top: the same box, three ways.
+[hero]
+quasar = '<div style="width: 200px; …">'
+nicegui = "ui.element('div').style(BOX)"
+vue = '<div class="box"></div>'
+
 [[column]]
 id = "quasar"
 name = "Quasar"

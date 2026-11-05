@@ -28,15 +28,17 @@ content/                         what the tutorial says (data, not layout)
     vue.html                     column 3, runs on its own in a browser
     shots/                       made by tutorial/shoot.py (PNGs + result.json), committed
 tutorial/
-  build.py                       content/ + templates -> docs/
-  shoot.py                       screenshots every column and compares the pixels
+  model.py                       reads content/ into typed objects (Site, Section, Step, Cross, Code, Shots)
+  build.py                       renders the model with the templates into docs/
+  shoot.py                       screenshots every column and compares the pixels (uses model.py)
   templates/                     Jinja2 templates (see "Templates and blocks")
   assets/site.css, site.js       shared by every page; copied to docs/assets/
   i18n/en.toml                   every UI string
 docs/                            GENERATED. Never edit by hand. Published with GitHub Pages
   index.html                     summary + every section, each step embedded
   steps/<s>-<n>.html             each step on its own page
-  assets/                        site.css, site.js, shots/
+  assets/                        site.css, site.js, shots/ (only the screenshots a page shows)
+tests/test_model.py              markers, translation merge, language codes, build smoke test
 design/wireframe-tv.html         the layout to follow
 steps/                           older stand-alone samples (material for Section 2), kept runnable
 ```
@@ -51,8 +53,13 @@ pip install -r requirements-dev.txt   # students only need requirements.txt
 playwright install chromium           # once, for shoot.py
 python tutorial/shoot.py              # after changing any column file
 python tutorial/build.py              # after changing anything in content/ or tutorial/
+python -m pytest                      # before every commit
 python content/01-layout/01-one-box/nicegui_app.py   # run one NiceGUI column
 ```
+
+`build.py --out DIR` writes somewhere else (the tests use a temp folder). The build owns
+`index.html`, `steps/`, `assets/` and `<lang>/` in its output folder and rewrites them from scratch,
+so a removed step leaves nothing behind. Other files there (a `CNAME`, say) are kept.
 
 `shoot.py` options: `--chromium PATH` uses an existing Chromium. `--npm-dir DIR` serves the CDN files
 from unpacked npm packages (`DIR/vue/`, `DIR/quasar/`) when jsDelivr / unpkg are blocked. They are the
@@ -60,7 +67,9 @@ same files, because both CDNs mirror the npm registry.
 
 ## Templates and blocks
 
-Jinja2, autoescape on, `StrictUndefined` (a typo fails the build).
+Jinja2, autoescape on, `StrictUndefined` (a typo fails the build). Templates get objects from
+`tutorial/model.py`, not dicts: `step.note(c.id).run`, `x.refs`, `r.builtin`, `sh.urls`. UI strings are
+`t.<key>` (a namespace, so no key can collide with a dict method).
 
 - `base.html`: page skeleton. Blocks: `title`, `body_class`, `main`. Includes `partials/topbar.html`,
   `partials/rail.html`, `partials/footer.html`.
@@ -109,6 +118,8 @@ matches. After editing a column file, run the build and fix any marker it report
 - Use logical properties (`margin-inline-start`, `border-inline-start`, `text-align: start`), not left / right,
   so right-to-left languages work. Code is always `dir="ltr"`.
 - The top bar holds: column toggles, key hints, text size (A− / A / A+) and theme (Auto / Light / Dark).
+  `data-col` marks things that belong to a column (site.js hides them with the column); other
+  per-column data uses its own attribute (`data-copy`, `data-code`).
   Settings live in `localStorage` under `xref-*`. Every read and write is wrapped in try / catch.
 - Below 1100 px CSS width, the rail moves to the top and the columns become tabs. Check 390 px too:
   the page must never scroll sideways.
@@ -116,19 +127,18 @@ matches. After editing a column file, run the build and fix any marker it report
 ## Languages (ready, only English now)
 
 - UI strings: `tutorial/i18n/<lang>.toml`. A missing key falls back to English.
-  Never name a key after a dict method (`copy`, `items`, `keys`, `values`, `get`, `update`, `pop`);
-  the build refuses it, because Jinja would find the method.
 - Content: put `step.<lang>.toml`, `section.<lang>.toml` or `site.<lang>.toml` next to the English file,
   with only the translated keys. Lists of tables (`[[cross]]`) merge item by item.
-- Turn a language on: add its code to `languages` in `content/site.toml`. It builds to `docs/<lang>/`
-  and shares `docs/assets/`. Set `dir = "rtl"` in its i18n file for Persian, Arabic or Hebrew.
+- Turn a language on: add its code (like `fa` or `pt-BR`) to `languages` in `content/site.toml`.
+  It builds to `docs/<lang>/` and shares `docs/assets/`. The model refuses malformed codes, because
+  each one names a folder the build deletes and rewrites. Set `dir = "rtl"` in its i18n file for Persian, Arabic or Hebrew.
 - Strings with `{name}` placeholders are filled with `.format()`. When a value holds HTML, escape the
   string first: `(t.key | e).format(file=markup)`.
 
 ## Rules
 
-- `docs/` is generated. Change `content/` or `tutorial/`, run `python tutorial/build.py`, and commit the
-  source and the regenerated `docs/` together.
+- `docs/` is generated. Change `content/` or `tutorial/`, run `python tutorial/build.py` and
+  `python -m pytest`, and commit the source and the regenerated `docs/` together.
 - Every column file must run on its own. Test before committing:
   - all columns: `python tutorial/shoot.py`. It must report `identical`, unless the step is about a
     difference, in which case say so in the step text.

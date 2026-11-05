@@ -1,4 +1,5 @@
-{#- Reusable blocks. Import with:  {% import "macros.html" as m with context %} -#}
+{#- Reusable blocks. Import with:  {% import "macros.html" as m with context %}
+    Objects come from tutorial/model.py (Step, Column, Cross, Ref, Code, Shots). -#}
 
 {#- A pill in a column's colour. -#}
 {% macro chip(col, text) -%}
@@ -7,10 +8,10 @@
 
 {#- A fake browser window around any content:  {% call m.browser("label") %}...{% endcall %} -#}
 {% macro browser(label) -%}
-<div class="browser"><div class="bbar"><i></i><i></i><i></i><span>{{ label }}</span></div>{{ caller() }}</div>
+<div class="browser"><div class="bbar" aria-hidden="true"><i></i><i></i><i></i><span>{{ label }}</span></div>{{ caller() }}</div>
 {%- endmacro %}
 
-{#- A titled card:  {% call m.card("Title", "try") %}<p>...</p>{% endcall %} -#}
+{#- A titled card:  {% call m.card("Title", "try") %}<p>...</p>{% endcall %}   kinds: try, aside, dashed -#}
 {% macro card(title, kind="") -%}
 <div class="card {{ kind }}">{% if title %}<h4>{{ title }}</h4>{% endif %}{{ caller() }}</div>
 {%- endmacro %}
@@ -19,7 +20,7 @@
 {% macro code_block(cid, code) -%}
 <pre class="code" dir="ltr" data-code="{{ cid }}"><code>
 {%- for row in code.rows -%}
-<span class="ln" data-n="{{ loop.index }}"><span class="no">{{ loop.index }}</span><span class="tx">{{ row }}</span><span class="mks">
+<span class="ln" data-n="{{ loop.index }}"><span class="no">{{ loop.index }}</span><span class="tx">{{ row | safe }}</span><span class="mks">
 {%- for n in code.marks.get(loop.index, []) %}<i>{{ n }}</i>{% endfor -%}
 </span></span>
 {%- endfor -%}
@@ -29,14 +30,14 @@
 {#- One column of a step: header, note, code. -#}
 {% macro column(step, c) -%}
 <div class="col" data-col="{{ c.id }}">
+  {%- if c.id in step.code %}{% set code = step.code[c.id] %}
   <div class="colhead"><b>{{ c.name }}</b>
-  {%- if c.id in step.code %}
-    {%- set code = step.code[c.id] %}
     <span class="meta">{{ code.file }} · {{ code.lang }} · {{ code.nlines }} {{ t.lines }}</span>
-    <button class="copy" type="button" data-col="{{ c.id }}">{{ t.copy_code }}</button></div>
-  <p class="colnote">{{ step.columns.get(c.id, {}).get('note', '') | safe }}</p>
+    <button class="copy" type="button" data-copy="{{ c.id }}">{{ t.copy_code }}</button></div>
+  <p class="colnote">{{ step.note(c.id).note | safe }}</p>
   {{ code_block(c.id, code) }}
-  {%- else %}</div>
+  {%- else %}
+  <div class="colhead"><b>{{ c.name }}</b></div>
   <div class="missing">{{ t.not_in.format(name=c.name) }}</div>
   {%- endif %}
 </div>
@@ -51,23 +52,19 @@
 <div class="shared card{{ '' if s.same else ' differ' }}">
   <div>
     <h4>{{ t.shared_shot }}</h4>
-    <p>{{ t.shot_same.format(n=s.imgs | length) if s.same else t.shot_differ }}</p>
+    <p>{{ t.shot_same.format(n=s.files | length) if s.same else t.shot_differ }}</p>
     <div class="chips">
-    {%- for c in cols if c.id in s.imgs %}
+    {%- for c in cols if c.id in s.files %}
       {{ chip(c.id, c.name ~ ' ✓' if s.diff.get(c.id, 0) == 0 else c.name ~ ' · ' ~ t.px_differ.format(n=s.diff[c.id])) }}
     {%- endfor %}
     </div>
     <p class="small">{{ t.shot_meta.format(w=s.w, h=s.h, scale=s.scale, date=s.date) }}</p>
   </div>
-  {%- if s.same %}
-    {% call browser(cols_by_id[s.compared_to].name) %}<img src="{{ assets }}{{ s.imgs[s.compared_to] }}" width="{{ s.w }}" height="{{ s.h }}" alt="{{ t.shot_alt.format(name=cols_by_id[s.compared_to].name) }}">{% endcall %}
-  {%- else %}
-  <div class="shots-each">
-    {%- for c in cols if c.id in s.imgs %}
-    {% call browser(c.name) %}<img src="{{ assets }}{{ s.imgs[c.id] }}" width="{{ s.w }}" height="{{ s.h }}" alt="{{ t.shot_alt.format(name=c.name) }}">{% endcall %}
+  <div class="{{ 'shot-one' if s.same else 'shots-each' }}">
+    {%- for cid, url in s.urls.items() %}{% set name = site.column(cid).name %}
+    {% call browser(name) %}<img src="{{ assets }}{{ url }}" width="{{ s.w }}" height="{{ s.h }}" alt="{{ t.shot_alt.format(name=name) }}">{% endcall %}
     {%- endfor %}
   </div>
-  {%- endif %}
 </div>
 {%- endif %}
 {%- endmacro %}
@@ -75,7 +72,7 @@
 {#- One cross-comment reference cell. -#}
 {% macro ref(cid, r) -%}
 {%- if r is none %}<span class="ref none" data-col="{{ cid }}">–</span>
-{%- elif r.get("builtin") %}<span class="ref built" data-col="{{ cid }}"><b>{{ t.built_in }}</b> {{ r.builtin }}</span>
+{%- elif r.builtin %}<span class="ref built" data-col="{{ cid }}"><b>{{ t.built_in }}</b> {{ r.builtin }}</span>
 {%- else %}<span class="ref" data-col="{{ cid }}"><b>{{ r.label }}</b> <code>{{ r.hint }}</code></span>
 {%- endif %}
 {%- endmacro %}
@@ -84,7 +81,7 @@
 {% macro cross(step) -%}
 <div class="xc">
   <h4>{{ t.cross }} <span class="hint">{{ t.cross_hint }}</span></h4>
-  <div class="xhead"><span></span><span>{{ t.what_matches }}</span>{% for c in cols %}<span data-col="{{ c.id }}">{{ c.name }}</span>{% endfor %}</div>
+  <div class="xhead" aria-hidden="true"><span></span><span>{{ t.what_matches }}</span>{% for c in cols %}<span data-col="{{ c.id }}">{{ c.name }}</span>{% endfor %}</div>
   {%- for x in step.cross %}
   <button type="button" class="xrow" id="{{ step.id }}-x{{ x.n }}" data-n="{{ x.n }}" aria-pressed="false" data-refs="{{ x.ranges | tojson | forceescape }}">
     <span class="mk">{{ x.n }}</span><span class="say"><b>{{ x.idea }}.</b> {{ x.say }}</span>

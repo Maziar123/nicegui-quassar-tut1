@@ -1,8 +1,7 @@
 # UI strings for English. To add a language, copy this file to <code>.toml
 # (for example fa.toml), translate the values, set dir = "rtl" if needed,
 # and add the code to `languages` in content/site.toml.
-# A missing key falls back to English. Never name a key after a dict method
-# (copy, items, keys, values, get, update, pop): Jinja would find the method instead.
+# A missing key falls back to English. Templates read keys as t.<key>.
 
 name = "English"
 dir = "ltr"
@@ -21,6 +20,7 @@ key_cross = "cross-comment"
 key_step = "step"
 key_clear = "clear"
 nav_label = "Sections and steps"
+skip = "Skip to content"
 summary = "Summary"
 section = "Section"
 step = "Step"

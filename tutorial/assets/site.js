@@ -86,7 +86,7 @@
   document.querySelectorAll('.copy').forEach(btn => btn.addEventListener('click', async () => {
     let raw = {};
     try { raw = JSON.parse(btn.closest('.step').querySelector('script.raw').textContent); } catch (e) {}
-    try { await navigator.clipboard.writeText(raw[btn.dataset.col] || ''); btn.textContent = T.copied || 'Copied'; }
+    try { await navigator.clipboard.writeText(raw[btn.dataset.copy] || ''); btn.textContent = T.copied || 'Copied'; }
     catch (e) {
       const r = document.createRange(); r.selectNodeContents(btn.closest('.col').querySelector('pre'));
       const s = getSelection(); s.removeAllRanges(); s.addRange(r);

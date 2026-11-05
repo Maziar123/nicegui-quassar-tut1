@@ -20,7 +20,9 @@
       "vue": "3.5.44",
       "nicegui": "4.0.0"
     },
-    "vue": {}
+    "vue": {
+      "vue": "3.5.45"
+    }
   },
   "npm_dir_used": true
 }

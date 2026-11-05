@@ -3,14 +3,14 @@
 {% block main %}
 {% include "partials/summary.html" %}
 {%- for sec in sections %}
-<section class="section" id="{{ sec.id }}">
-  <header class="sec-head"><span class="kicker">{{ t.section }} {{ sec.n }}</span><h2>{{ sec.name }}</h2><p>{{ sec.about }}</p></header>
+<section class="section" id="{{ sec.id }}" aria-labelledby="{{ sec.id }}-title">
+  <header class="sec-head"><span class="kicker">{{ t.section }} {{ sec.n }}</span><h2 id="{{ sec.id }}-title">{{ sec.name }}</h2><p>{{ sec.about }}</p></header>
   {%- for st in sec.steps %}
   {{ step_html[st.id] }}
   {%- endfor %}
-  {%- if sec.planned_steps %}
+  {%- if sec.planned %}
   <div class="card dashed coming"><h4>{{ t.coming_next }}</h4>
-    <ul>{% for p in sec.planned_steps %}<li><span>{{ p.num }}</span>{{ p.name }}</li>{% endfor %}</ul></div>
+    <ul>{% for p in sec.planned %}<li><span>{{ p.num }}</span>{{ p.name }}</li>{% endfor %}</ul></div>
   {%- endif %}
 </section>
 {%- endfor %}

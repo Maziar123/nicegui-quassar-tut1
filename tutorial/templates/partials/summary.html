@@ -1,13 +1,17 @@
 {#- The summary at the top of the index page. -#}
 {% import "macros.html" as m with context %}
-<section class="summary" id="summary">
+<section class="summary" id="summary" aria-labelledby="summary-title">
   <div class="sumtop">
     <div>
-      <h1>{{ site.title }}<small>{{ site.subtitle }}</small></h1>
+      <h1 id="summary-title">{{ site.title }}<small>{{ site.subtitle }}</small></h1>
       <div class="lead">{% for p in site.lead %}<p>{{ p | safe }}</p>{% endfor %}</div>
     </div>
     <figure class="hero">
-      <div class="hero-in">{% for c in cols %}{{ m.chip(c.id, c.name) }}{% endfor %}</div>
+      <div class="hero-code">
+        {%- for c in cols %}
+        <div class="hero-line" data-col="{{ c.id }}"><span>{{ c.name }}</span><code dir="ltr">{{ site.hero.get(c.id, '') }}</code></div>
+        {%- endfor %}
+      </div>
       <div class="hero-arrow" aria-hidden="true">{{ t.hero_arrow }}</div>
       {% call m.browser(t.hero_page) %}<div class="hero-page"><div class="hero-box"></div></div>{% endcall %}
       <figcaption>{{ t.hero_caption }}</figcaption>
@@ -19,30 +23,27 @@
     {%- for c in cols %}
     <div class="colcard c-{{ c.id }}"><b>{{ c.name }}</b><p>{{ c.what }}</p>
       <dl><dt>{{ t.you_write }}</dt><dd>{{ c.lang }}</dd><dt>{{ t.needs }}</dt><dd>{{ c.needs }}</dd>
-      {%- if c.get("tested") %}<dt>{{ t.tested }}</dt><dd>{{ c.tested }}</dd>{% endif %}</dl></div>
+      {%- if c.tested %}<dt>{{ t.tested }}</dt><dd>{{ c.tested }}</dd>{% endif %}</dl></div>
     {%- endfor %}
   </div>
 
-  <div>
-    <div>
-      <h2 class="sumh">{{ t.quick_xref }}</h2>
-      <p class="small">{{ t.quick_xref_note }}</p>
-      <div class="xtab-wrap"><table class="xtab">
-        <thead><tr><th>{{ t.idea }}</th>{% for c in cols %}<th data-col="{{ c.id }}">{{ c.name }}</th>{% endfor %}<th>{{ t.step }}</th></tr></thead>
-        <tbody>
-        {%- for st, x in xref_rows %}
-          <tr><th scope="row">{{ x.idea }}</th>
-          {%- for c in cols %}{% set r = x.refs.get(c.id) %}
-            {%- if r is none %}<td data-col="{{ c.id }}">–</td>
-            {%- elif r.get("builtin") %}<td data-col="{{ c.id }}" class="built" title="{{ r.builtin }}">{{ t.built_in }}</td>
-            {%- else %}<td data-col="{{ c.id }}"><code>{{ r.hint }}</code></td>{% endif %}
-          {%- endfor %}
-          <td class="go"><a href="{{ href(st.id ~ '-x' ~ x.n) }}" data-x="{{ st.id }}-x{{ x.n }}">{{ st.num }} ›</a></td></tr>
-        {%- endfor %}
-        </tbody>
-      </table></div>
-    </div>
-  </div>
+  <h2 class="sumh">{{ t.quick_xref }}</h2>
+  <p class="small">{{ t.quick_xref_note }}</p>
+  <div class="xtab-wrap"><table class="xtab">
+    <thead><tr><th scope="col">{{ t.idea }}</th>{% for c in cols %}<th scope="col" data-col="{{ c.id }}">{{ c.name }}</th>{% endfor %}<th scope="col">{{ t.step }}</th></tr></thead>
+    <tbody>
+    {%- for st, x in xref_rows %}
+      <tr><th scope="row">{{ x.idea }}</th>
+      {%- for c in cols %}{% set r = x.refs.get(c.id) %}
+        {%- if r is none %}<td data-col="{{ c.id }}">–</td>
+        {%- elif r.builtin %}<td data-col="{{ c.id }}" class="built" title="{{ r.builtin }}">{{ t.built_in }}</td>
+        {%- else %}<td data-col="{{ c.id }}"><code dir="ltr">{{ r.hint }}</code></td>{% endif %}
+      {%- endfor %}
+      <td class="go"><a href="{{ href(st.id ~ '-x' ~ x.n) }}" data-x="{{ st.id }}-x{{ x.n }}">{{ st.num }} ›</a></td></tr>
+    {%- endfor %}
+    </tbody>
+  </table></div>
+
   <div class="sumgrid">
     <div>
       <h2 class="sumh">{{ t.how_to_read }}</h2>
@@ -57,14 +58,17 @@
 
   <h2 class="sumh">{{ t.sections }}</h2>
   <div class="seccards">
-    {%- for sec in sections %}
+    {%- for sec in sections %}{% set ready = t.steps_ready.format(ready=sec.steps | length, total=sec.total) %}
     <div class="card seccard">
-      <h4><a href="{{ href(sec.id) }}">{{ t.section }} {{ sec.n }} · {{ sec.name }}</a></h4>
+      <h4><a href="{{ href(sec.id) }}"><span class="secnum">{{ sec.n }}</span>{{ sec.name }}</a></h4>
       <p>{{ sec.about }}</p>
-      <p class="small">{{ t.steps_ready.format(ready=sec.steps | length, total=(sec.steps | length) + (sec.planned_steps | length)) }}</p>
+      <div class="progress" role="img" aria-label="{{ ready }}">
+        {%- for st in sec.steps %}<i class="on"></i>{% endfor %}{% for p in sec.planned %}<i></i>{% endfor -%}
+      </div>
+      <p class="small">{{ ready }}</p>
       <ul>
         {%- for st in sec.steps %}<li><a href="{{ href(st.id) }}"><span>{{ st.num }}</span>{{ st.name }}</a></li>{% endfor %}
-        {%- for p in sec.planned_steps %}<li class="planned"><span>{{ p.num }}</span>{{ p.name }} <em>{{ t.coming }}</em></li>{% endfor %}
+        {%- for p in sec.planned %}<li class="planned"><span>{{ p.num }}</span>{{ p.name }} <em>{{ t.coming }}</em></li>{% endfor %}
       </ul>
     </div>
     {%- endfor %}

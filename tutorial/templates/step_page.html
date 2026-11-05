@@ -1,8 +1,9 @@
-{#- One step on its own page: docs/steps/<n>-<n>.html -#}
+{#- One step on its own page: docs/steps/<s>-<n>.html -#}
 {% extends "base.html" %}
 {% block title %}{{ step.num }} {{ step.name }} · {{ site.title }}{% endblock %}
+{% block description %}{{ step.num }} {{ step.name }}. {{ site.subtitle }}: {{ site.title }}.{% endblock %}
 {% block body_class %}step-page{% endblock %}
 {% block main %}
-<p class="kicker"><a href="{{ href('summary') }}">← {{ t.back_to_all }}</a> · <a href="{{ href(sec.id) }}">{{ t.section }} {{ sec.n }} · {{ sec.name }}</a></p>
+<p class="crumbs"><a href="{{ href('summary') }}">← {{ t.back_to_all }}</a><span aria-hidden="true">/</span><a href="{{ href(sec.id) }}">{{ t.section }} {{ sec.n }} · {{ sec.name }}</a></p>
 {{ step_html[step.id] }}
 {% endblock %}

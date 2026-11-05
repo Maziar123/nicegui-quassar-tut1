@@ -1,27 +1,27 @@
 {#- The template for one step. Every step uses it.
     A step can override any block with its own content/<section>/<step>/step.html:
         {% extends "step.html" %}
+        {% import "macros.html" as m with context %}
         {% block extra %} ... {% endblock %}
     Blocks, top to bottom: head, intro, columns, shots, extra, cross, foot, nav.
-    Variables: step, sec, cols, t, mode ("index" or "page"), href(), assets. -#}
+    Variables: step, sec, site, cols, t, mode ("index" or "page"), href(), step_link(), step_page_href(), assets. -#}
 {% import "macros.html" as m with context %}
-<article class="step" id="{{ step.id }}">
+<article class="step" id="{{ step.id }}" aria-labelledby="{{ step.id }}-title">
 {%- block head %}
   <header class="step-head">
-    <span class="badge">{{ step.num }}</span><h3>{{ step.name }}</h3>
-    <span class="side">
-      <span class="kicker">{{ t.section }} {{ sec.n }} · {{ sec.name }}</span>
-      {%- if mode == "index" %}
-      <a class="alone" href="{{ step_page_href(step) }}">{{ t.open_alone }} ↗</a>
-      {%- endif %}
-    </span>
+    <span class="badge">{{ step.num }}</span><h3 id="{{ step.id }}-title">{{ step.name }}</h3>
+    {%- if mode == "index" %}
+    <a class="alone" href="{{ step_page_href(step) }}">{{ t.open_alone }} ↗</a>
+    {%- endif %}
   </header>
 {%- endblock %}
 
 {%- block intro %}
   <div class="intro">
     <div class="intro-text">{% for p in step.intro %}<p>{{ p | safe }}</p>{% endfor %}</div>
+    {%- if step.picture %}
     <figure class="pic">{{ step.picture | safe }}<figcaption>{{ step.picture_caption }}</figcaption></figure>
+    {%- endif %}
   </div>
 {%- endblock %}
 
@@ -49,9 +49,9 @@
 {%- block foot %}
   <div class="stepfoot">
     {% call m.card(t.run_it) %}<ul class="runs">
-      {%- for c in cols if c.id in step.code %}{% set col = step.columns.get(c.id, {}) %}
-        {%- if col.get('run') %}<li>{{ m.chip(c.id, c.name) }} <code>{{ col.run }}</code></li>
-        {%- elif col.get('open') %}<li>{{ m.chip(c.id, c.name) }} {{ (t.open_in_browser | e).format(file=('<code>' | safe) ~ col.open ~ ('</code>' | safe)) }}</li>
+      {%- for c in cols if c.id in step.code %}{% set n = step.note(c.id) %}
+        {%- if n.run %}<li>{{ m.chip(c.id, c.name) }} <code>{{ n.run }}</code></li>
+        {%- elif n.open %}<li>{{ m.chip(c.id, c.name) }} {{ (t.open_in_browser | e).format(file=('<code>' | safe) ~ n.open ~ ('</code>' | safe)) }}</li>
         {%- endif %}
       {%- endfor %}
     </ul>{% endcall %}
@@ -60,7 +60,7 @@
 {%- endblock %}
 
 {%- block nav %}
-  <nav class="prevnext">
+  <nav class="prevnext" aria-label="{{ t.step }}">
     {%- for side, s, arrow in [("prev", step.prev, "←"), ("next", step.next, "→")] %}
       {%- if s and s.ready %}<a class="{{ side }}" href="{{ step_link(s) }}">{{ arrow }} {{ s.num }} {{ s.name }}</a>
       {%- elif s %}<span>{{ arrow }} {{ s.num }} {{ s.name }} ({{ t.coming }})</span>
