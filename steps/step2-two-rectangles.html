@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Step 2 – Two Rectangles Side by Side (Vue 3)</title>
+  <style>
+    .row {
+      display: flex;  /* side by side in one row */
+      gap: 16px;      /* small space between them */
+    }
+
+    .rect {
+      width: 200px;
+      height: 120px;
+      border: 2px solid #333;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="row">
+      <div class="rect"></div>  <!-- left -->
+      <div class="rect"></div>  <!-- right -->
+    </div>
+  </div>
+
+  <script type="module">
+    import { createApp } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.prod.js'
+
+    createApp({}).mount('#app')
+  </script>
+</body>
+</html>

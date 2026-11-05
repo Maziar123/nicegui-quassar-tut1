@@ -1,0 +1,2 @@
+nicegui==4.0.0      # Step 3; also installs fastapi and uvicorn for Step 4
+pygments==2.21.0    # tutorial/build.py

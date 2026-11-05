@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Step 5 – Same road as NiceGUI: Vue 3 + Quasar 2, no Python</title>
+
+  <!-- Same base NiceGUI loads in the browser -->
+  <link href="https://cdn.jsdelivr.net/npm/quasar@2/dist/quasar.prod.css" rel="stylesheet">
+  <script type="importmap">
+    { "imports": { "vue": "https://cdn.jsdelivr.net/npm/vue@3/dist/vue.esm-browser.prod.js" } }
+  </script>
+
+  <!-- The two NiceGUI CSS rules this layout uses (from nicegui.css) -->
+  <style>
+    .nicegui-content, .nicegui-row {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    .nicegui-content { padding: 1rem; }
+    .nicegui-row     { flex-direction: row; }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <!-- 1. Vue as ES module, exposed globally for Quasar (exactly how NiceGUI does it) -->
+  <script type="module">
+    import * as Vue from 'vue'
+    globalThis.Vue = Vue
+  </script>
+
+  <!-- 2. Quasar UI library -->
+  <script defer src="https://cdn.jsdelivr.net/npm/quasar@2/dist/quasar.umd.prod.js"></script>
+
+  <!-- 3. Element tree → Vue + Quasar (what NiceGUI's Python server + nicegui.js do) -->
+  <script type="module">
+    import { createApp, h, resolveComponent } from 'vue'
+
+    const RECT = { width: '200px', height: '120px', border: '2px solid #333' }
+
+    // Same tree NiceGUI sends as JSON in Step 3
+    const tree =
+      { tag: 'q-layout', props: { view: 'hhh lpr fff' }, children: [
+        { tag: 'q-page-container', children: [
+          { tag: 'q-page', children: [
+            { tag: 'div', class: ['nicegui-content'], children: [
+              { tag: 'div', class: ['nicegui-row', 'row'], style: { gap: '16px' }, children: [
+                { tag: 'div', style: RECT },   // left
+                { tag: 'div', style: RECT },   // right
+              ]},
+            ]},
+          ]},
+        ]},
+      ]}
+
+    function render(node) {
+      const kids = () => (node.children ?? []).map(render)
+      const attrs = { class: node.class, style: node.style, ...node.props }
+      return node.tag.startsWith('q-')
+        ? h(resolveComponent(node.tag), attrs, { default: kids })  // Quasar component
+        : h(node.tag, attrs, kids())                              // plain HTML tag
+    }
+
+    createApp({ render: () => render(tree) }).use(Quasar).mount('#app')
+  </script>
+</body>
+</html>
