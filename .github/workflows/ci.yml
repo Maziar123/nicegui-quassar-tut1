@@ -1,0 +1,32 @@
+# Lint, tests (with headless Chromium) and "docs/ is up to date", on every push and pull request.
+# Runs `just ci`, the same command you run locally.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: true
+      - name: Install the locked environment
+        run: uv sync --locked
+      - name: Chromium for the browser tests
+        run: uv run playwright install --with-deps chromium
+      - name: just ci (lint, requirements, tests, browser tests, docs up to date)
+        run: uv run just ci

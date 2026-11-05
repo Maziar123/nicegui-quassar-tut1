@@ -43,25 +43,57 @@ docs/                            GENERATED. Never edit by hand. Published with G
   steps/<s>-<n>.html             each step on its own page
   assets/                        site.css, site.js, shots/ (only the screenshots a page shows)
 tests/test_model.py              markers, translations, Markdown fences, build safety, build smoke test
+tests/test_browser.py            the built site in headless Chromium (layout, scroll, cross-comments, Mermaid)
+pyproject.toml, uv.lock          dependencies (runtime + dev group) and tool settings; the exact lock
+requirements.txt                 exported from uv.lock for plain pip (do not edit)
+justfile                         every project command (`just` lists them)
+.pre-commit-config.yaml          git hooks (prek); .github/ CI, Pages deploy, Dependabot
 design/wireframe-tv.html         the layout to follow
 design/tooling-2026-11.md        survey of frameworks and tools (why the generator stays custom; what to adopt next)
 steps/                           older stand-alone samples (material for Section 2), kept runnable
 ```
 
-## Commands
+## Toolbox and commands
 
-Arch Linux (or anywhere): use a virtual environment, because the system pip is blocked (PEP 668).
+One tool installs everything: **uv**. On Arch Linux: `sudo pacman -S uv` (or see docs.astral.sh/uv).
+uv manages the Python version (`.python-version`), the virtual environment (`.venv`) and the exact
+package versions (`uv.lock`), so the system pip and PEP 668 never get in the way.
 
 ```bash
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements-dev.txt   # students only need requirements.txt
-playwright install chromium           # once, for shoot.py
-python tutorial/shoot.py              # after changing any column file
-python tutorial/build.py              # after changing anything in content/ or tutorial/
-python -m pytest                      # before every commit
-ln -s AGENTS.md CLAUDE.md             # only if the symlink is ever lost
-python content/01-layout/01-one-box/nicegui_app.py   # run one NiceGUI column
+uv sync                 # install the locked environment (once, and after pulling)
+uv run just setup       # + git hooks (prek) + Chromium for screenshots and browser tests
+uv run just             # list every command
 ```
+
+| Command | Does |
+|---|---|
+| `just shoot` | screenshot every column, compare pixels, write `shots/` (after changing a column file) |
+| `just build` | build the site into `docs/` |
+| `just serve` | serve `docs/` on http://localhost:8000 |
+| `just run 01-layout/01-one-box` | run one NiceGUI column |
+| `just test` / `just test-browser` | fast tests / browser tests in headless Chromium |
+| `just lint` / `just fmt` | ruff check + format check / format and fix |
+| `just reqs` | write `requirements.txt` from `uv.lock` (after changing dependencies) |
+| `just ci` | everything CI runs: lint, requirements, tests, browser tests, docs up to date |
+| `just upgrade` | update every pinned package, then `uv.lock` and `requirements.txt` |
+
+Tools (all pinned in `pyproject.toml` → `uv.lock`, so every machine and CI use the same versions):
+uv (environment), ruff (lint + format, settings in `pyproject.toml`), pytest (`tests/`), Playwright
+(screenshots, browser tests), prek (git hooks from `.pre-commit-config.yaml`; pre-commit compatible),
+just (`justfile`). Dependencies live only in `pyproject.toml`; never edit `uv.lock` or `requirements.txt`
+by hand (`requirements.txt` is exported for students who use plain pip, and a check keeps it in sync).
+
+Git hooks (after `just setup`) run on every commit: ruff check, ruff format, requirements check, fast
+tests, and `build.py --check`. CI (`.github/workflows/ci.yml`) runs `just ci` on every push and pull
+request. `.github/workflows/pages.yml` publishes `docs/` (Settings → Pages → Source: GitHub Actions).
+Dependabot opens monthly update pull requests for the actions and for `uv.lock`; after merging one,
+run `just reqs`.
+
+Machine settings go in a git-ignored `.env` (read by `just`): `XREF_CHROMIUM=/path/to/chromium` uses
+an existing browser, `XREF_NPM_DIR=/path` serves CDN files from unpacked npm packages (when the CDN is
+blocked; also lets the browser tests draw Mermaid).
+
+`ln -s AGENTS.md CLAUDE.md` restores the symlink if it is ever lost.
 
 `build.py --out DIR` writes somewhere else (the tests use a temp folder). The build renders into a
 temporary folder and swaps the result in only when everything worked, so a failed build never leaves a
@@ -69,9 +101,12 @@ half-empty `docs/`. `DIR/.xref-build.json` lists what the build owns (`index.htm
 `<lang>/`); those are replaced, a language removed from `site.toml` is cleaned up, and other files
 (a `CNAME`, say) are kept. A non-empty folder without that manifest is refused (`docs/` itself is allowed).
 
-`shoot.py` options: `--chromium PATH` uses an existing Chromium. `--npm-dir DIR` serves the CDN files
-from unpacked npm packages (`DIR/vue/`, `DIR/quasar/`) when jsDelivr / unpkg are blocked. They are the
-same files, because both CDNs mirror the npm registry.
+`build.py --check` builds into a temporary folder and fails, listing the files, when `docs/` differs.
+
+`shoot.py` options: `--chromium PATH` (or `XREF_CHROMIUM`) uses an existing Chromium. `--npm-dir DIR`
+(or `XREF_NPM_DIR`) serves the CDN files from unpacked npm packages (`DIR/vue/`, `DIR/quasar/`,
+`DIR/mermaid/`) when jsDelivr / unpkg are blocked. They are the same files, because both CDNs mirror the
+npm registry. When two columns differ, `shots/diff-<column>.png` shows the differing pixels in red.
 
 ## Templates and blocks
 
@@ -170,17 +205,18 @@ matches. After editing a column file, run the build and fix any marker it report
 
 ## Rules
 
-- `docs/` is generated. Change `content/` or `tutorial/`, run `python tutorial/build.py` and
-  `python -m pytest`, and commit the source and the regenerated `docs/` together.
+- `docs/` is generated. Change `content/` or `tutorial/`, run `just build` and `just ci`, and commit the
+  source and the regenerated `docs/` together. CI fails when `docs/` is out of date.
+- A bug fix comes with a test that fails without the fix. Check it: put the bug back, see the test fail.
 - Every column file must run on its own. Test before committing:
   - all columns: `python tutorial/shoot.py`. It must report `identical`, unless the step is about a
     difference, in which case say so in the step text. It stores a sha256 of each column file; when a
     file changes later, the build warns and the page shows the screenshot as out of date.
   - NiceGUI columns also by hand: run with `show=False, reload=False` and fetch the page with curl.
 - Never name a column file `nicegui.py`: it hides the real `nicegui` package. Use `nicegui_app.py`.
-- Look at the built page at 1920 × 1080, 1440 × 900 and 390 × 844 in both themes, and check the browser
-  console for errors. Also scroll with the mouse wheel on a narrow screen, and try text size A+ three
-  times: the page must never scroll sideways.
+- `just test-browser` checks the built page at 1920 × 1080, 1440 × 900 and 390 × 844, at normal and
+  large text: no console errors, no sideways scroll, the page stays where it is scrolled, every
+  cross-comment lights exactly its lines. Still look at new layout work yourself, in both themes.
 - In site.js, never call `scrollIntoView()` on something inside the sticky rail: it scrolls the window
   too and locks the page on narrow screens. Scroll the rail itself.
 - Quasar sets `box-sizing: border-box` on everything. Plain Vue does not, so a plain column writes it
@@ -188,7 +224,7 @@ matches. After editing a column file, run the build and fix any marker it report
 - Audience is students: short sentences, plain words, no em-dash asides on the page.
 - Versions in use (tested 2026-11-05): NiceGUI 4.0.0 (bundles Vue 3.5.44, Quasar 2.35.2), FastAPI 0.162.0,
   uvicorn 0.54.0, Pygments 2.21.0, Jinja2 3.1.6, markdown-it-py 4.2.0, Playwright 1.64.1, pytest 9.2.0,
-  Mermaid 12.2.0 (browser). The HTML columns load `vue@3` and
+  ruff 0.17.3, prek 0.5.10, just 1.59.0 (rust-just), uv 0.13.7, Mermaid 12.2.0 (browser), Python 3.13. The HTML columns load `vue@3` and
   `quasar@2` from jsDelivr (Vue 3.5.45, Quasar 2.35.2 today).
 
 ## Adding a step

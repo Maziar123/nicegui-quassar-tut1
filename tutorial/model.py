@@ -4,6 +4,7 @@ Shared by build.py (renders pages) and shoot.py (screenshots). Templates see the
 so attribute names here are the names templates use. Dataclasses (not dicts) keep a content key
 from ever colliding with a dict method in Jinja (t.copy once rendered "<built-in method copy>").
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -46,7 +47,8 @@ def merge(base, over):
     if isinstance(base, dict) and isinstance(over, dict):
         return {**base, **{k: merge(base[k], v) if k in base else v for k, v in over.items()}}
     if isinstance(base, list) and isinstance(over, list) and all(isinstance(x, dict) for x in base + over):
-        return [merge(b, o) for b, o in zip(base, over)] + base[len(over):] + over[len(base):]
+        # zip stops at the shorter list on purpose: the rest of either list is added after
+        return [merge(b, o) for b, o in zip(base, over, strict=False)] + base[len(over) :] + over[len(base) :]
     return over
 
 
@@ -88,7 +90,7 @@ def find(lines: list[str], marks: list[str], where: str) -> tuple[int, int]:
     if not 1 <= len(marks) <= 2:
         raise ContentError(f'{where}: a range is ["start"] or ["start", "end"], got {marks!r}')
     start, end = marks[0], (marks[1] if len(marks) == 2 else None)
-    i = next((n for n, l in enumerate(lines) if hit(l, start)), None)
+    i = next((n for n, line in enumerate(lines) if hit(line, start)), None)
     if i is None:
         raise ContentError(f'{where}: no line matches {start!r}')
     if end is None:
@@ -111,7 +113,7 @@ class Column:
     what: str = ''
     lang: str = ''
     needs: str = ''
-    tested: str = ''          # filled from the screenshots' library versions
+    tested: str = ''  # filled from the screenshots' library versions
 
 
 @dataclass
@@ -126,8 +128,8 @@ class Site:
     setup: str
     setup_note: str
     columns: list[Column]
-    hero: dict[str, str] = field(default_factory=dict)   # column id -> one line of code
-    libs: dict[str, str] = field(default_factory=dict)   # pinned browser libraries, e.g. mermaid -> URL
+    hero: dict[str, str] = field(default_factory=dict)  # column id -> one line of code
+    libs: dict[str, str] = field(default_factory=dict)  # pinned browser libraries, e.g. mermaid -> URL
 
     @property
     def column_ids(self) -> list[str]:
@@ -145,7 +147,7 @@ class Code:
     file: str
     ext: str
     text: str
-    marks: dict[int, list[int]] = field(default_factory=dict)   # line -> cross-comment numbers
+    marks: dict[int, list[int]] = field(default_factory=dict)  # line -> cross-comment numbers
 
     @property
     def lines(self) -> list[str]:
@@ -173,6 +175,7 @@ class Code:
 @dataclass
 class Ref:
     """Where one cross-comment lands in one column: line ranges, or 'built in'."""
+
     ranges: list[tuple[int, int]] = field(default_factory=list)
     hint: str = ''
     builtin: str = ''
@@ -197,28 +200,29 @@ class Cross:
 @dataclass
 class Note:
     note: str = ''
-    run: str = ''      # a shell command
-    open: str = ''     # a file to open in the browser
+    run: str = ''  # a shell command
+    open: str = ''  # a file to open in the browser
 
 
 @dataclass
 class Shots:
     same: bool
     diff: dict[str, int]
-    files: dict[str, Path]          # column id -> png in content/
+    files: dict[str, Path]  # column id -> png in content/
     w: int
     h: int
     scale: int
     date: str
     compared_to: str
     libraries: dict[str, dict]
-    stale: list[str] = field(default_factory=list)       # columns whose file changed after the screenshot
-    urls: dict[str, str] = field(default_factory=dict)   # column id -> path under docs/assets/, set by build
+    stale: list[str] = field(default_factory=list)  # columns whose file changed after the screenshot
+    urls: dict[str, str] = field(default_factory=dict)  # column id -> path under docs/assets/, set by build
 
 
 @dataclass
 class MdBlock:
     """A Markdown file of a step (content/<section>/<step>/<name>.md), shown in the extra block."""
+
     name: str
     text: str
 
@@ -249,7 +253,7 @@ class Step:
     cross: list[Cross]
     shots: Shots | None
     blocks: list[MdBlock] = field(default_factory=list)
-    section: 'Section' = None
+    section: Section = None
     ready = True
     prev: object = None
     next: object = None
@@ -283,14 +287,27 @@ def load_site(lang: str | None = None) -> Site:
     # Codes become folder names that the build deletes and rewrites (docs/<code>/), so be strict.
     bad = [c for c in languages if not isinstance(c, str) or not LANG_CODE.fullmatch(c) or c in ('steps', 'assets')]
     if not languages or bad or len(set(languages)) != len(languages):
-        raise ContentError(f'content/site.toml: languages must be distinct codes like "en" or "pt-BR", got {languages!r}')
+        raise ContentError(
+            f'content/site.toml: languages must be distinct codes like "en" or "pt-BR", got {languages!r}'
+        )
     default = languages[0]
     lang = lang or default
     d = read_toml(CONTENT / 'site.toml', lang, default)
     cols = [Column(**{k: c[k] for k in ('id', 'name', 'what', 'lang', 'needs') if k in c}) for c in d['column']]
-    return Site(lang=lang, default_lang=default, languages=languages, title=d['title'], subtitle=d['subtitle'],
-                lead=d['lead'], how_to_read=d['how_to_read'], setup=d['setup'], setup_note=d['setup_note'],
-                columns=cols, hero=d.get('hero', {}), libs=d.get('libs', {}))
+    return Site(
+        lang=lang,
+        default_lang=default,
+        languages=languages,
+        title=d['title'],
+        subtitle=d['subtitle'],
+        lead=d['lead'],
+        how_to_read=d['how_to_read'],
+        setup=d['setup'],
+        setup_note=d['setup_note'],
+        columns=cols,
+        hero=d.get('hero', {}),
+        libs=d.get('libs', {}),
+    )
 
 
 def section_dirs() -> list[Path]:
@@ -316,8 +333,9 @@ def load_sections(site: Site) -> list[Section]:
             st = load_step(tdir, f'{n}.{k}', site)
             st.section = sec
             sec.steps.append(st)
-        sec.planned = [Planned(num=f'{n}.{len(sec.steps) + k}', name=name)
-                       for k, name in enumerate(d.get('planned', []), 1)]
+        sec.planned = [
+            Planned(num=f'{n}.{len(sec.steps) + k}', name=name) for k, name in enumerate(d.get('planned', []), 1)
+        ]
         sections.append(sec)
     flat = [s for sec in sections for s in sec.steps + sec.planned]
     for i, s in enumerate(flat):
@@ -355,9 +373,14 @@ def load_step(tdir: Path, num: str, site: Site) -> Step:
                 refs[cid] = Ref(builtin=spec['builtin'])
                 continue
             at = spec['at']
-            if not isinstance(at, list) or not at or not all(
-                    isinstance(m, list) and m and all(isinstance(x_, str) and x_ for x_ in m) for m in at):
-                raise ContentError(f'{here}: at must be a list of ranges like [["start"], ["start", "end"]], got {at!r}')
+            if (
+                not isinstance(at, list)
+                or not at
+                or not all(isinstance(m, list) and m and all(isinstance(x_, str) and x_ for x_ in m) for m in at)
+            ):
+                raise ContentError(
+                    f'{here}: at must be a list of ranges like [["start"], ["start", "end"]], got {at!r}'
+                )
             if cid not in code:
                 raise ContentError(f'{where}: cross-comment {n} points at {cid}, but there is no {cid} file')
             c = code[cid]
@@ -375,19 +398,28 @@ def load_step(tdir: Path, num: str, site: Site) -> Step:
     s, k = num.split('.')
     blocks = []
     for f in sorted(tdir.glob('*.md')):
-        if '.' in f.stem:                    # why.fa.md is a translation of why.md, not a block of its own
+        if '.' in f.stem:  # why.fa.md is a translation of why.md, not a block of its own
             continue
         tr = f.with_name(f'{f.stem}.{site.lang}.md')
         src = tr if site.lang != site.default_lang and tr.is_file() else f
         blocks.append(MdBlock(name=f.stem, text=src.read_text()))
     return Step(
-        num=num, id=f's{s}-{k}', slug=f'{s}-{k}', name=d['name'], dir=tdir,
+        num=num,
+        id=f's{s}-{k}',
+        slug=f'{s}-{k}',
+        name=d['name'],
+        dir=tdir,
         template=f'{tdir.relative_to(CONTENT).as_posix()}/step.html' if (tdir / 'step.html').is_file() else 'step.html',
         intro=d['intro'],
         picture=re.sub(r'<\?xml.*?\?>', '', pic.read_text()).strip() if pic.is_file() else '',
-        picture_caption=d.get('picture_caption', ''), try_it=d.get('try_it', ''),
+        picture_caption=d.get('picture_caption', ''),
+        try_it=d.get('try_it', ''),
         notes={cid: Note(**v) for cid, v in d.get('columns', {}).items()},
-        code=code, cross=cross, shots=load_shots(tdir, site.column_ids), blocks=blocks)
+        code=code,
+        cross=cross,
+        shots=load_shots(tdir, site.column_ids),
+        blocks=blocks,
+    )
 
 
 def file_hash(path: Path) -> str:
@@ -405,12 +437,21 @@ def load_shots(tdir: Path, col_ids: list[str]) -> Shots | None:
         f = column_file(tdir, cid)
         if f is None or file_hash(f) != digest:
             stale.append(cid)
-    if 'sources' not in r:          # made before shoot.py recorded hashes: cannot tell, so say so
+    if 'sources' not in r:  # made before shoot.py recorded hashes: cannot tell, so say so
         stale = list(files)
     diff = r['diff_pixels']
-    return Shots(same=all(v == 0 for v in diff.values()), diff=diff, files=files,
-                 w=r['view']['width'], h=r['view']['height'], scale=r['scale'], date=r['tested'],
-                 compared_to=r['compared_to'], libraries=r['libraries'], stale=stale)
+    return Shots(
+        same=all(v == 0 for v in diff.values()),
+        diff=diff,
+        files=files,
+        w=r['view']['width'],
+        h=r['view']['height'],
+        scale=r['scale'],
+        date=r['tested'],
+        compared_to=r['compared_to'],
+        libraries=r['libraries'],
+        stale=stale,
+    )
 
 
 def fill_tested(site: Site, sections: list[Section]) -> None:

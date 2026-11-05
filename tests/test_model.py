@@ -1,4 +1,5 @@
 """Tests for tutorial/model.py and a build smoke test.  Run:  python -m pytest"""
+
 import re
 import sys
 from pathlib import Path
@@ -13,20 +14,23 @@ import model  # noqa: E402
 LINES = ['<div id="app">', '  <div class="box">', '  </div>', '</div>']
 
 
-@pytest.mark.parametrize('marker, line, expected', [
-    ('box', '  <div class="box">', True),            # contains
-    ('=</div>', '  </div>', True),                    # equal after trimming
-    ('==</div>', '  </div>', False),                  # exactly equal
-    ('==  </div>', '  </div>', True),
-    ('nothing', '<div>', False),
-])
+@pytest.mark.parametrize(
+    'marker, line, expected',
+    [
+        ('box', '  <div class="box">', True),  # contains
+        ('=</div>', '  </div>', True),  # equal after trimming
+        ('==</div>', '  </div>', False),  # exactly equal
+        ('==  </div>', '  </div>', True),
+        ('nothing', '<div>', False),
+    ],
+)
 def test_hit(marker, line, expected):
     assert model.hit(line, marker) is expected
 
 
 def test_find_single_and_range():
     assert model.find(LINES, ['class="box"'], 'x') == (2, 2)
-    assert model.find(LINES, ['<div id="app">', '=</div>'], 'x') == (1, 3)   # first trimmed "</div>" from the start
+    assert model.find(LINES, ['<div id="app">', '=</div>'], 'x') == (1, 3)  # first trimmed "</div>" from the start
     assert model.find(LINES, ['<div id="app">', '==</div>'], 'x') == (1, 4)
 
 
@@ -45,15 +49,15 @@ def test_merge_translation():
     over = {'name': 'Ein Kasten', 'cross': [{'say': 'ä'}]}
     out = model.merge(base, over)
     assert out['name'] == 'Ein Kasten'
-    assert out['cross'] == [{'idea': 'A', 'say': 'ä'}, {'idea': 'B', 'say': 'b'}]   # item by item, rest kept
+    assert out['cross'] == [{'idea': 'A', 'say': 'ä'}, {'idea': 'B', 'say': 'b'}]  # item by item, rest kept
     assert out['n'] == 1
-    assert base['cross'][0]['say'] == 'a'                                           # base untouched
+    assert base['cross'][0]['say'] == 'a'  # base untouched
 
 
 def test_strings_are_attributes_not_dict_methods():
     t = model.strings('en', 'en')
     assert t.copy_code == 'Copy'
-    assert not callable(getattr(t, 'copy', None))      # a dict would return dict.copy here
+    assert not callable(getattr(t, 'copy', None))  # a dict would return dict.copy here
 
 
 def test_content_loads_and_markers_resolve():
@@ -64,28 +68,30 @@ def test_content_loads_and_markers_resolve():
     for st in steps:
         for x in st.cross:
             assert x.refs, f'{st.num} cross-comment {x.n} points nowhere'
-            for cid, ref in x.refs.items():
+            for ref in x.refs.values():
                 assert ref.builtin or ref.ranges
 
 
 def test_bad_language_code_is_refused(monkeypatch):
     real = model.tomllib.loads
-    monkeypatch.setattr(model.tomllib, 'loads', lambda s: {**real(s), 'languages': ['en', '']} if 'languages' in s else real(s))
+    monkeypatch.setattr(
+        model.tomllib, 'loads', lambda s: {**real(s), 'languages': ['en', '']} if 'languages' in s else real(s)
+    )
     with pytest.raises(model.ContentError):
         model.load_site()
 
 
 def test_build_smoke(tmp_path):
     build.build(tmp_path)
-    (tmp_path / 'CNAME').write_text('keep me')                        # added by hand after the first build
+    (tmp_path / 'CNAME').write_text('keep me')  # added by hand after the first build
     written = build.build(tmp_path)
     index = (tmp_path / 'index.html').read_text()
-    assert (tmp_path / 'CNAME').read_text() == 'keep me'              # the build only replaces what it owns
+    assert (tmp_path / 'CNAME').read_text() == 'keep me'  # the build only replaces what it owns
     assert (tmp_path / 'assets' / 'site.css').is_file()
     assert 'built-in method' not in index and 'Undefined' not in index
     for f in written:
         html = f.read_text()
-        for ref in re.findall(r'(?:href|src)="(?![a-z]+:)([^"#]+)', html):   # every local link and asset exists
+        for ref in re.findall(r'(?:href|src)="(?![a-z]+:)([^"#]+)', html):  # every local link and asset exists
             assert (f.parent / ref).resolve().exists(), f'{f.name}: broken {ref}'
     # building twice gives the same pages
     first = {f: f.read_text() for f in written}
@@ -96,7 +102,7 @@ def test_build_smoke(tmp_path):
 # ---------------------------------------------------------------- regressions from the code review
 def test_rows_keep_leading_blank_lines():
     code = model.Code(file='a.py', ext='.py', text='\n\nx = 1\n')
-    assert code.nlines == 3 and len(code.rows) == 3          # row n is line n
+    assert code.nlines == 3 and len(code.rows) == 3  # row n is line n
 
 
 def make_step(tmp_path, cross_toml):
@@ -107,20 +113,25 @@ def make_step(tmp_path, cross_toml):
     return d
 
 
-@pytest.mark.parametrize('spec', [
-    'vue = { at = ["ab"] }',                  # a string where a range list belongs
-    'vue = { hint = "no at, no builtin" }',
-    'vue = { at = [["app"]], builtin = "both" }',
-    'vue = "just text"',
-    'vue = { at = [[""]] }',
-])
+@pytest.mark.parametrize(
+    'spec',
+    [
+        'vue = { at = ["ab"] }',  # a string where a range list belongs
+        'vue = { hint = "no at, no builtin" }',
+        'vue = { at = [["app"]], builtin = "both" }',
+        'vue = "just text"',
+        'vue = { at = [[""]] }',
+    ],
+)
 def test_bad_cross_spec_is_a_clear_error(tmp_path, spec):
     with pytest.raises(model.ContentError):
         model.load_step(make_step(tmp_path, spec), '9.9', model.load_site())
 
 
 def test_good_cross_spec(tmp_path):
-    st = model.load_step(make_step(tmp_path, 'vue = { at = [["app", "=</div>"]], hint = "h" }'), '9.9', model.load_site())
+    st = model.load_step(
+        make_step(tmp_path, 'vue = { at = [["app", "=</div>"]], hint = "h" }'), '9.9', model.load_site()
+    )
     assert st.cross[0].refs['vue'].ranges == [(1, 2)]
 
 
@@ -130,12 +141,13 @@ def test_failed_build_keeps_the_old_site(tmp_path, monkeypatch):
 
     def broken(site):
         raise model.ContentError('bad marker')
+
     monkeypatch.setattr(model, 'load_sections', broken)
     with pytest.raises(model.ContentError):
         build.build(tmp_path)
-    assert (tmp_path / 'index.html').read_text() == before   # nothing was deleted
+    assert (tmp_path / 'index.html').read_text() == before  # nothing was deleted
     assert (tmp_path / 'steps').is_dir()
-    assert not list(tmp_path.parent.glob('.xref-build-*'))   # temp folder cleaned up
+    assert not list(tmp_path.parent.glob('.xref-build-*'))  # temp folder cleaned up
 
 
 def test_refuses_a_folder_it_does_not_own(tmp_path):
@@ -147,7 +159,7 @@ def test_refuses_a_folder_it_does_not_own(tmp_path):
 
 def test_removed_language_folder_is_cleaned_up(tmp_path):
     build.build(tmp_path)
-    (tmp_path / 'fa').mkdir()                                  # pretend an earlier build made docs/fa/
+    (tmp_path / 'fa').mkdir()  # pretend an earlier build made docs/fa/
     (tmp_path / 'fa' / 'index.html').write_text('old')
     manifest = tmp_path / build.MANIFEST
     manifest.write_text(manifest.read_text().replace('"assets"', '"assets", "fa"'))
@@ -166,13 +178,22 @@ import mdrender  # noqa: E402
 
 
 def fake_fence(**kw):
-    return f'<FENCE {kw["kind"]} {kw["lang"]} title={kw["title"]!r} marked={sorted(kw["marked"])} rows={len(kw["rows"])}>'
+    return (
+        f'<FENCE {kw["kind"]} {kw["lang"]} title={kw["title"]!r} marked={sorted(kw["marked"])} rows={len(kw["rows"])}>'
+    )
 
 
-@pytest.mark.parametrize('info, kind, lang', [
-    ('css', 'code', 'css'), ('mermaid', 'mermaid', 'mermaid'), ('html preview', 'html', 'html'),
-    ('html', 'code', 'html'), ('', 'code', ''), ('nosuchlang', 'code', 'nosuchlang'),
-])
+@pytest.mark.parametrize(
+    'info, kind, lang',
+    [
+        ('css', 'code', 'css'),
+        ('mermaid', 'mermaid', 'mermaid'),
+        ('html preview', 'html', 'html'),
+        ('html', 'code', 'html'),
+        ('', 'code', ''),
+        ('nosuchlang', 'code', 'nosuchlang'),
+    ],
+)
 def test_fence_kinds(info, kind, lang):
     out = mdrender.Markdown(fence_html=fake_fence).block(f'```{info}\na\nb\n```\n')
     assert f'<FENCE {kind} {lang} ' in out and 'rows=2' in out
@@ -212,7 +233,7 @@ def test_markdown_blocks_and_translations(tmp_path, monkeypatch):
     (d / '1-a.fa.md').write_text('# A in Persian')
     site = model.load_site()
     st = model.load_step(d, '9.9', site)
-    assert [(b.name, b.text) for b in st.blocks] == [('1-a', '# A'), ('2-b', '# B')]   # file order, no translations
+    assert [(b.name, b.text) for b in st.blocks] == [('1-a', '# A'), ('2-b', '# B')]  # file order, no translations
     site.lang = 'fa'
     st = model.load_step(d, '9.9', site)
-    assert st.blocks[0].text == '# A in Persian' and st.blocks[1].text == '# B'       # fallback to English
+    assert st.blocks[0].text == '# A in Persian' and st.blocks[1].text == '# B'  # fallback to English

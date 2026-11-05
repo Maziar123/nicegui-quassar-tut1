@@ -11,7 +11,7 @@ code blocks at once. Quarto, Zensical / Material, Code Hike and Expressive Code 
 block at a time. The cross-comments, the pixel proof and the TV layout are what this project is
 about, and the generator that does them is small (about 800 lines of Python).
 
-Worth adopting next, in this order:
+Worth adopting next, in this order. **Adopted on 2026-11-05: items 1 to 4** (uv, ruff + prek, just, CI + Pages + Dependabot), plus diff pictures in `shoot.py` and browser tests in `tests/test_browser.py`.
 
 1. **uv** (0.13.7): venv, Python version and a lock file in one tool. Simpler than `python -m venv`
    on Arch (PEP 668).

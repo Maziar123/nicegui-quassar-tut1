@@ -1,0 +1,50 @@
+# One file for dependencies and tool settings. uv.lock pins every package exactly.
+#   uv sync                 install everything (creates .venv)
+#   just                    list the project commands (see justfile)
+# requirements.txt is exported from uv.lock for people who use plain pip: never edit it by hand.
+
+[project]
+name = "xref-tutorial"
+version = "0.1.0"
+description = "Quasar & NiceGUI & Vue 3: side-by-side cross-reference and tutorial"
+readme = "README.md"
+requires-python = ">=3.11"          # tomllib; NiceGUI 4 needs 3.11+
+dependencies = [
+    "nicegui==4.0.0",               # the NiceGUI columns (also installs fastapi, uvicorn, jinja2)
+    "pygments==2.21.0",             # build: code highlighting
+    "jinja2==3.1.6",                # build: templates
+    "markdown-it-py==4.2.0",        # build: Markdown in content
+]
+
+[dependency-groups]
+dev = [
+    "pytest==9.2.0",                # tests/
+    "playwright==1.64.1",           # tutorial/shoot.py and tests/test_browser.py (then: playwright install chromium)
+    "ruff==0.17.3",                 # lint + format
+    "prek==0.5.10",                 # git hooks (pre-commit compatible, .pre-commit-config.yaml)
+    "rust-just==1.59.0",            # the `just` command runner (justfile)
+]
+
+[tool.uv]
+package = false                     # a site, not a library: nothing to build or install
+required-version = ">=0.11"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = ["steps"]          # older stand-alone samples, kept exactly as written
+
+[tool.ruff.format]
+quote-style = "single"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E402"]                # imports after sys.path / skip setup
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["tutorial"]
+addopts = "-q"
+markers = ["browser: drives headless Chromium (skipped when no browser is available)"]

@@ -9,10 +9,11 @@ Fence info string:  ```<lang> [preview] [title="file.css"] [hl=2,4-5] [height=22
 The HTML of a fence is not built here: it comes from the `fence` macro in
 templates/macros.html, passed in as `fence_html`, so all markup lives in templates.
 """
+
 from __future__ import annotations
 
 import shlex
-from typing import Callable
+from collections.abc import Callable
 
 from markdown_it import MarkdownIt
 from markupsafe import Markup
@@ -27,31 +28,88 @@ from pygments.util import ClassNotFound
 
 class MermaidLexer(RegexLexer):
     """Small Mermaid lexer (Pygments has none). Covers keywords, directions, arrows, labels, comments."""
+
     name = 'Mermaid'
     aliases = ['mermaid', 'mmd']
-    tokens = {'root': [
-        (r'%%.*?$', Comment.Single),
-        (words(('flowchart', 'graph', 'sequenceDiagram', 'classDiagram', 'stateDiagram-v2', 'stateDiagram',
-                'erDiagram', 'gantt', 'pie', 'journey', 'mindmap', 'timeline', 'gitGraph', 'quadrantChart',
-                'block-beta', 'architecture-beta', 'subgraph', 'end', 'direction', 'participant', 'actor',
-                'note', 'loop', 'alt', 'else', 'opt', 'par', 'and', 'rect', 'title', 'section', 'style',
-                'classDef', 'class', 'click', 'linkStyle', 'as', 'over', 'left of', 'right of'),
-               prefix=r'(?<![\w-])', suffix=r'(?![\w-])'), Keyword),
-        (r'(?<![\w-])(TB|TD|BT|RL|LR)(?![\w-])', Keyword.Constant),
-        (r'"[^"\n]*"', String.Double),
-        (r'\[[^\]\n]*\]|\([^)\n]*\)|\{[^}\n]*\}', String),
-        (r'\|[^|\n]*\|', String),                                     # edge label: -->|yes|
-        (r'<-->|<==>|-\.->|-\.-|-->>|->>|-->|---|==>|===|->|--[xo]|~~~|-x|-\)', Operator),
-        (r':::?', Operator),
-        (r'[;:,&]', Punctuation),
-        (r'\s+', Whitespace),
-        (r'[\w.#]+', Name),
-        (r'.', Text),
-    ]}
+    tokens = {
+        'root': [
+            (r'%%.*?$', Comment.Single),
+            (
+                words(
+                    (
+                        'flowchart',
+                        'graph',
+                        'sequenceDiagram',
+                        'classDiagram',
+                        'stateDiagram-v2',
+                        'stateDiagram',
+                        'erDiagram',
+                        'gantt',
+                        'pie',
+                        'journey',
+                        'mindmap',
+                        'timeline',
+                        'gitGraph',
+                        'quadrantChart',
+                        'block-beta',
+                        'architecture-beta',
+                        'subgraph',
+                        'end',
+                        'direction',
+                        'participant',
+                        'actor',
+                        'note',
+                        'loop',
+                        'alt',
+                        'else',
+                        'opt',
+                        'par',
+                        'and',
+                        'rect',
+                        'title',
+                        'section',
+                        'style',
+                        'classDef',
+                        'class',
+                        'click',
+                        'linkStyle',
+                        'as',
+                        'over',
+                        'left of',
+                        'right of',
+                    ),
+                    prefix=r'(?<![\w-])',
+                    suffix=r'(?![\w-])',
+                ),
+                Keyword,
+            ),
+            (r'(?<![\w-])(TB|TD|BT|RL|LR)(?![\w-])', Keyword.Constant),
+            (r'"[^"\n]*"', String.Double),
+            (r'\[[^\]\n]*\]|\([^)\n]*\)|\{[^}\n]*\}', String),
+            (r'\|[^|\n]*\|', String),  # edge label: -->|yes|
+            (r'<-->|<==>|-\.->|-\.-|-->>|->>|-->|---|==>|===|->|--[xo]|~~~|-x|-\)', Operator),
+            (r':::?', Operator),
+            (r'[;:,&]', Punctuation),
+            (r'\s+', Whitespace),
+            (r'[\w.#]+', Name),
+            (r'.', Text),
+        ]
+    }
 
 
-LABEL = {'html': 'HTML', 'css': 'CSS', 'js': 'JavaScript', 'javascript': 'JavaScript', 'python': 'Python',
-         'py': 'Python', 'toml': 'TOML', 'bash': 'Bash', 'sh': 'Shell', 'json': 'JSON', 'mermaid': 'Mermaid'}
+LABEL = {
+    'html': 'HTML',
+    'css': 'CSS',
+    'js': 'JavaScript',
+    'javascript': 'JavaScript',
+    'python': 'Python',
+    'py': 'Python',
+    'toml': 'TOML',
+    'bash': 'Bash',
+    'sh': 'Shell',
+    'json': 'JSON',
+    'mermaid': 'Mermaid',
+}
 
 
 def lexer_for(lang: str):
@@ -98,7 +156,7 @@ class Markdown:
         self.md = MarkdownIt('commonmark', {'html': True}).enable(['table', 'strikethrough'])
         self.md.add_render_rule('fence', self._fence)
 
-    def _fence(self, tokens, idx, options, env):   # a bound method: markdown-it passes no renderer
+    def _fence(self, tokens, idx, options, env):  # a bound method: markdown-it passes no renderer
         tok = tokens[idx]
         try:
             lang, flags, attrs = parse_info(tok.info)
@@ -107,10 +165,21 @@ class Markdown:
         except ValueError as e:
             raise ValueError(f'bad code fence info {tok.info!r}: {e}') from None
         code = tok.content
-        kind = 'mermaid' if lang in MermaidLexer.aliases else 'html' if lang == 'html' and 'preview' in flags else 'code'
-        return str(self.fence_html(kind=kind, lang=lang, label=LABEL.get(lang, lang.upper() or 'Text'),
-                                   rows=highlight_rows(code, lang), raw=code, marked=marked,
-                                   title=attrs.get('title', ''), height=height))
+        kind = (
+            'mermaid' if lang in MermaidLexer.aliases else 'html' if lang == 'html' and 'preview' in flags else 'code'
+        )
+        return str(
+            self.fence_html(
+                kind=kind,
+                lang=lang,
+                label=LABEL.get(lang, lang.upper() or 'Text'),
+                rows=highlight_rows(code, lang),
+                raw=code,
+                marked=marked,
+                title=attrs.get('title', ''),
+                height=height,
+            )
+        )
 
     def block(self, text: str) -> Markup:
         """A Markdown block. Headings move down by `heading_shift` (# -> h4 inside a step)."""
