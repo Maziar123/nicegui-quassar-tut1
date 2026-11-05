@@ -4,7 +4,7 @@
   <div class="sumtop">
     <div>
       <h1 id="summary-title">{{ site.title }}<small>{{ site.subtitle }}</small></h1>
-      <div class="lead">{% for p in site.lead %}<p>{{ p | safe }}</p>{% endfor %}</div>
+      <div class="lead">{% for p in site.lead %}<p>{{ md.inline(p) }}</p>{% endfor %}</div>
     </div>
     <figure class="hero">
       <div class="hero-code">
@@ -47,12 +47,12 @@
   <div class="sumgrid">
     <div>
       <h2 class="sumh">{{ t.how_to_read }}</h2>
-      <ol class="how">{% for p in site.how_to_read %}<li>{{ p | safe }}</li>{% endfor %}</ol>
+      <ol class="how">{% for p in site.how_to_read %}<li>{{ md.inline(p) }}</li>{% endfor %}</ol>
     </div>
     <div>
       <h2 class="sumh">{{ t.get_ready }}</h2>
       <pre class="cmd" dir="ltr"><code>{{ site.setup }}</code></pre>
-      <p class="small">{{ site.setup_note }}</p>
+      <p class="small">{{ md.inline(site.setup_note) }}</p>
     </div>
   </div>
 

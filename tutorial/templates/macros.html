@@ -1,5 +1,6 @@
 {#- Reusable blocks. Import with:  {% import "macros.html" as m with context %}
-    Objects come from tutorial/model.py (Step, Column, Cross, Ref, Code, Shots). -#}
+    Objects come from tutorial/model.py (Step, Column, Cross, Ref, Code, Shots).
+    `md.inline(text)` / `md.block(text)` render Markdown (tutorial/mdrender.py). -#}
 
 {#- A pill in a column's colour. -#}
 {% macro chip(col, text) -%}
@@ -34,7 +35,7 @@
   <div class="colhead"><b>{{ c.name }}</b>
     <span class="meta">{{ code.file }} · {{ code.lang }} · {{ code.nlines }} {{ t.lines }}</span>
     <button class="copy" type="button" data-copy="{{ c.id }}">{{ t.copy_code }}</button></div>
-  <p class="colnote">{{ step.note(c.id).note | safe }}</p>
+  <p class="colnote">{{ md.inline(step.note(c.id).note) }}</p>
   {{ code_block(c.id, code) }}
   {%- else %}
   <div class="colhead"><b>{{ c.name }}</b></div>
@@ -87,9 +88,39 @@
   <div class="xhead" aria-hidden="true"><span></span><span>{{ t.what_matches }}</span>{% for c in cols %}<span data-col="{{ c.id }}">{{ c.name }}</span>{% endfor %}</div>
   {%- for x in step.cross %}
   <button type="button" class="xrow" id="{{ step.id }}-x{{ x.n }}" data-n="{{ x.n }}" aria-pressed="false" data-refs="{{ x.ranges | tojson | forceescape }}">
-    <span class="mk">{{ x.n }}</span><span class="say"><b>{{ x.idea }}.</b> {{ x.say }}</span>
+    <span class="mk">{{ x.n }}</span><span class="say"><b>{{ x.idea }}.</b> {{ md.inline(x.say) }}</span>
     {%- for c in cols %}{{ ref(c.id, x.refs.get(c.id)) }}{% endfor %}
   </button>
   {%- endfor %}
 </div>
+{%- endmacro %}
+
+{#- A Markdown code fence. Called from tutorial/mdrender.py, so it may only use `t`.
+    kind: "code" (highlighted), "mermaid" (code + diagram), "html" (code + sandboxed preview, no scripts). -#}
+{% macro fence(kind, lang, label, rows, raw, marked, title, height) -%}
+<figure class="{{ 'mdcode' if kind == 'code' else 'cp' }}"{% if kind != 'code' %} data-kind="{{ kind }}" data-view="both"{% endif %}>
+  <div class="mdbar">
+    <span class="lang">{{ label }}</span>
+    {%- if title %}<span class="ftitle">{{ title }}</span>{% endif %}
+    {%- if kind != 'code' %}
+    <span class="cp-views" role="group" aria-label="{{ t.cp_view }}">
+      {%- for v in ('both', 'code', 'preview') %}<button type="button" data-view="{{ v }}" aria-pressed="{{ 'true' if v == 'both' else 'false' }}">{{ t | attr('cp_' ~ v) }}</button>{% endfor -%}
+    </span>
+    {%- endif %}
+    <button class="copy" type="button" data-copy-src>{{ t.copy_code }}</button>
+  </div>
+  <div class="cp-body">
+    <pre class="code" dir="ltr"><code>
+    {%- for row in rows -%}
+    <span class="ln{{ ' mark' if loop.index in marked }}" data-n="{{ loop.index }}"><span class="no">{{ loop.index }}</span><span class="tx">{{ row | safe }}</span><span class="mks"></span></span>
+    {%- endfor -%}
+    </code></pre>
+    {%- if kind == 'mermaid' %}
+    <div class="cp-preview"><div class="mermaid-out" role="img" aria-label="{{ title or t.diagram }}"><p class="small">{{ t.diagram_loading }}</p></div></div>
+    {%- elif kind == 'html' %}
+    <div class="cp-preview"><iframe sandbox="" srcdoc="{{ raw }}" height="{{ height }}" title="{{ title or t.cp_preview }}" loading="lazy"></iframe></div>
+    {%- endif %}
+  </div>
+  <script type="application/json" class="src">{{ raw | tojson }}</script>
+</figure>
 {%- endmacro %}

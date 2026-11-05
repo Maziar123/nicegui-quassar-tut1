@@ -160,7 +160,7 @@ pip install -r requirements.txt</code></pre>
     <a class="alone" href="steps/1-1.html">Open this step on its own page ↗</a>
   </header>
   <div class="intro">
-    <div class="intro-text"><p>Draw one empty box, 200 × 120 px, with a dark 2 px border.</p><p>Three columns, three ways to write it. They all draw the same pixels: the screenshot below compares them.</p><p>Look at cross-comments 3 and 5. Quasar and NiceGUI do two jobs for you that plain Vue has to write by hand.</p></div>
+    <div class="intro-text"><p>Draw one empty box, 200 × 120 px, with a dark 2 px border.</p><p>Three columns, three ways to write it. They all draw the same pixels: the screenshot below compares them.</p><p>Look at cross-comments 3 and 5. Quasar and NiceGUI do two jobs for you that plain Vue has to write by hand. The notes below the screenshot explain why.</p></div>
     <figure class="pic"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 230" role="img" aria-label="A page corner. One box sits 16 px from the top and the left. The box is 200 px wide and 120 px tall, with a 2 px border.">
   <!-- page corner -->
   <path d="M20 20 H390 M20 20 V220" fill="none" stroke="currentColor" stroke-opacity=".35" stroke-width="2"/>
@@ -225,13 +225,55 @@ pip install -r requirements.txt</code></pre>
   </div>
 </div>
   <div class="extra">
-    <div class="card aside"><h4>Why the border goes inside</h4>
-      <p>A browser counts the border outside the width by default. Then a 200 px box with a 2 px border is 204 px wide.
-        <code>box-sizing: border-box</code> puts the border inside, so the box stays 200 px.
-        Quasar turns this on for every element, so NiceGUI has it too. In plain Vue you write it yourself.</p>
-    </div>
+    <section class="card mdblock" id="s1-1-1-why-border"><h4>Why the border goes inside</h4>
+<p>A browser counts the border <strong>outside</strong> the width by default. Then a 200 px box with a 2 px border
+is 204 px wide. <code>box-sizing: border-box</code> puts the border inside, so the box stays 200 px.</p>
+<figure class="mdcode">
+  <div class="mdbar">
+    <span class="lang">CSS</span><span class="ftitle">vue.html</span>
+    <button class="copy" type="button" data-copy-src>Copy</button>
   </div>
-
+  <div class="cp-body">
+    <pre class="code" dir="ltr"><code><span class="ln" data-n="1"><span class="no">1</span><span class="tx"><span class="p">.</span><span class="nc">box</span><span class="w"> </span><span class="p">{</span></span><span class="mks"></span></span><span class="ln" data-n="2"><span class="no">2</span><span class="tx"><span class="w">  </span><span class="k">width</span><span class="p">:</span><span class="w"> </span><span class="mi">200</span><span class="kt">px</span><span class="p">;</span></span><span class="mks"></span></span><span class="ln" data-n="3"><span class="no">3</span><span class="tx"><span class="w">  </span><span class="k">height</span><span class="p">:</span><span class="w"> </span><span class="mi">120</span><span class="kt">px</span><span class="p">;</span></span><span class="mks"></span></span><span class="ln" data-n="4"><span class="no">4</span><span class="tx"><span class="w">  </span><span class="k">border</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="kt">px</span><span class="w"> </span><span class="kc">solid</span><span class="w"> </span><span class="mh">#333</span><span class="p">;</span></span><span class="mks"></span></span><span class="ln mark" data-n="5"><span class="no">5</span><span class="tx"><span class="w">  </span><span class="k">box-sizing</span><span class="p">:</span><span class="w"> </span><span class="kc">border-box</span><span class="p">;</span></span><span class="mks"></span></span><span class="ln" data-n="6"><span class="no">6</span><span class="tx"><span class="p">}</span></span><span class="mks"></span></span></code></pre>
+  </div>
+  <script type="application/json" class="src">".box {\n  width: 200px;\n  height: 120px;\n  border: 2px solid #333;\n  box-sizing: border-box;\n}\n"</script>
+</figure><p>Quasar turns this on for every element, so NiceGUI has it too. In plain Vue you write it yourself.
+Here is the difference with a thick 8 px border, so you can see it:</p>
+<figure class="cp" data-kind="html" data-view="both">
+  <div class="mdbar">
+    <span class="lang">HTML</span><span class="ftitle">content-box and border-box</span>
+    <span class="cp-views" role="group" aria-label="Show"><button type="button" data-view="both" aria-pressed="true">Both</button><button type="button" data-view="code" aria-pressed="false">Code</button><button type="button" data-view="preview" aria-pressed="false">Preview</button></span>
+    <button class="copy" type="button" data-copy-src>Copy</button>
+  </div>
+  <div class="cp-body">
+    <pre class="code" dir="ltr"><code><span class="ln" data-n="1"><span class="no">1</span><span class="tx"><span class="p">&lt;</span><span class="nt">style</span><span class="p">&gt;</span></span><span class="mks"></span></span><span class="ln" data-n="2"><span class="no">2</span><span class="tx"><span class="w">  </span><span class="nt">body</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">margin</span><span class="p">:</span><span class="w"> </span><span class="mi">16</span><span class="kt">px</span><span class="p">;</span><span class="w"> </span><span class="k">font</span><span class="p">:</span><span class="w"> </span><span class="mi">15</span><span class="kt">px</span><span class="w"> </span><span class="n">system-ui</span><span class="p">,</span><span class="w"> </span><span class="kc">sans-serif</span><span class="p">;</span><span class="w"> </span><span class="p">}</span></span><span class="mks"></span></span><span class="ln" data-n="3"><span class="no">3</span><span class="tx"><span class="w">  </span><span class="p">.</span><span class="nc">box</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">width</span><span class="p">:</span><span class="w"> </span><span class="mi">200</span><span class="kt">px</span><span class="p">;</span><span class="w"> </span><span class="k">height</span><span class="p">:</span><span class="w"> </span><span class="mi">56</span><span class="kt">px</span><span class="p">;</span><span class="w"> </span><span class="k">border</span><span class="p">:</span><span class="w"> </span><span class="mi">8</span><span class="kt">px</span><span class="w"> </span><span class="kc">solid</span><span class="w"> </span><span class="mh">#333</span><span class="p">;</span><span class="w"> </span><span class="k">margin-bottom</span><span class="p">:</span><span class="w"> </span><span class="mi">14</span><span class="kt">px</span><span class="p">;</span><span class="w"> </span><span class="k">padding</span><span class="p">:</span><span class="w"> </span><span class="mi">6</span><span class="kt">px</span><span class="p">;</span><span class="w"> </span><span class="p">}</span></span><span class="mks"></span></span><span class="ln" data-n="4"><span class="no">4</span><span class="tx"><span class="w">  </span><span class="p">.</span><span class="nc">inside</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">box-sizing</span><span class="p">:</span><span class="w"> </span><span class="kc">border-box</span><span class="p">;</span><span class="w"> </span><span class="p">}</span></span><span class="mks"></span></span><span class="ln" data-n="5"><span class="no">5</span><span class="tx"><span class="p">&lt;/</span><span class="nt">style</span><span class="p">&gt;</span></span><span class="mks"></span></span><span class="ln" data-n="6"><span class="no">6</span><span class="tx"><span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"box"</span><span class="p">&gt;</span>content-box: 228 px<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span></span><span class="mks"></span></span><span class="ln" data-n="7"><span class="no">7</span><span class="tx"><span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">"box inside"</span><span class="p">&gt;</span>border-box: 200 px<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span></span><span class="mks"></span></span></code></pre>
+    <div class="cp-preview"><iframe sandbox="" srcdoc="&lt;style&gt;
+  body { margin: 16px; font: 15px system-ui, sans-serif; }
+  .box { width: 200px; height: 56px; border: 8px solid #333; margin-bottom: 14px; padding: 6px; }
+  .inside { box-sizing: border-box; }
+&lt;/style&gt;
+&lt;div class=&#34;box&#34;&gt;content-box: 228 px&lt;/div&gt;
+&lt;div class=&#34;box inside&#34;&gt;border-box: 200 px&lt;/div&gt;
+" height="200" title="content-box and border-box" loading="lazy"></iframe></div>
+  </div>
+  <script type="application/json" class="src">"\u003cstyle\u003e\n  body { margin: 16px; font: 15px system-ui, sans-serif; }\n  .box { width: 200px; height: 56px; border: 8px solid #333; margin-bottom: 14px; padding: 6px; }\n  .inside { box-sizing: border-box; }\n\u003c/style\u003e\n\u003cdiv class=\"box\"\u003econtent-box: 228 px\u003c/div\u003e\n\u003cdiv class=\"box inside\"\u003eborder-box: 200 px\u003c/div\u003e\n"</script>
+</figure></section>
+    <section class="card mdblock" id="s1-1-2-the-road"><h4>How each column reaches the browser</h4>
+<p>All three files end as the same page, but they take different roads.
+NiceGUI is the only one with a server: your Python runs there, and the browser gets the page from it.</p>
+<figure class="cp" data-kind="mermaid" data-view="both">
+  <div class="mdbar">
+    <span class="lang">Mermaid</span>
+    <span class="cp-views" role="group" aria-label="Show"><button type="button" data-view="both" aria-pressed="true">Both</button><button type="button" data-view="code" aria-pressed="false">Code</button><button type="button" data-view="preview" aria-pressed="false">Preview</button></span>
+    <button class="copy" type="button" data-copy-src>Copy</button>
+  </div>
+  <div class="cp-body">
+    <pre class="code" dir="ltr"><code><span class="ln" data-n="1"><span class="no">1</span><span class="tx"><span class="k">flowchart</span><span class="w"> </span><span class="kc">LR</span></span><span class="mks"></span></span><span class="ln" data-n="2"><span class="no">2</span><span class="tx"><span class="w">  </span><span class="n">Q</span><span class="s">["quasar.html"]</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">QV</span><span class="s">["Vue 3 + Quasar&lt;br&gt;(in the browser)"]</span></span><span class="mks"></span></span><span class="ln" data-n="3"><span class="no">3</span><span class="tx"><span class="w">  </span><span class="n">N</span><span class="s">["nicegui_app.py"]</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">S</span><span class="s">["NiceGUI server&lt;br&gt;(Python)"]</span></span><span class="mks"></span></span><span class="ln" data-n="4"><span class="no">4</span><span class="tx"><span class="w">  </span><span class="n">S</span><span class="w"> </span><span class="o">--&gt;</span><span class="s">|"page + element tree"|</span><span class="w"> </span><span class="n">QV</span></span><span class="mks"></span></span><span class="ln" data-n="5"><span class="no">5</span><span class="tx"><span class="w">  </span><span class="n">V</span><span class="s">["vue.html"]</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">VV</span><span class="s">["Vue 3&lt;br&gt;(in the browser)"]</span></span><span class="mks"></span></span><span class="ln" data-n="6"><span class="no">6</span><span class="tx"><span class="w">  </span><span class="n">QV</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">DOM</span><span class="s">["Browser DOM&lt;br&gt;one empty box"]</span></span><span class="mks"></span></span><span class="ln" data-n="7"><span class="no">7</span><span class="tx"><span class="w">  </span><span class="n">VV</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">DOM</span></span><span class="mks"></span></span></code></pre>
+    <div class="cp-preview"><div class="mermaid-out" role="img" aria-label="Diagram"><p class="small">Drawing the diagram…</p></div></div>
+  </div>
+  <script type="application/json" class="src">"flowchart LR\n  Q[\"quasar.html\"] --\u003e QV[\"Vue 3 + Quasar\u003cbr\u003e(in the browser)\"]\n  N[\"nicegui_app.py\"] --\u003e S[\"NiceGUI server\u003cbr\u003e(Python)\"]\n  S --\u003e|\"page + element tree\"| QV\n  V[\"vue.html\"] --\u003e VV[\"Vue 3\u003cbr\u003e(in the browser)\"]\n  QV --\u003e DOM[\"Browser DOM\u003cbr\u003eone empty box\"]\n  VV --\u003e DOM\n"</script>
+</figure></section>
+  </div>
   <div class="xc">
   <h4>Cross-comments <span class="hint">Click one, or press C, to light up its lines in every column</span></h4>
   <div class="xhead" aria-hidden="true"><span></span><span>What matches</span><span data-col="quasar">Quasar</span><span data-col="nicegui">NiceGUI</span><span data-col="vue">Vue 3</span></div>
@@ -248,7 +290,7 @@ pip install -r requirements.txt</code></pre>
     <span class="mk">4</span><span class="say"><b>The box.</b> One empty div, 200 × 120 px, with a 2 px border.</span><span class="ref" data-col="quasar"><b>L14</b> <code>&lt;div style=&#34;…&#34;&gt;</code></span><span class="ref" data-col="nicegui"><b>L3, L7</b> <code>ui.element(&#39;div&#39;).style(…)</code></span><span class="ref" data-col="vue"><b>L10–15, L21</b> <code>.box + &lt;div class=&#34;box&#34;&gt;</code></span>
   </button>
   <button type="button" class="xrow" id="s1-1-x5" data-n="5" aria-pressed="false" data-refs="{&#34;nicegui&#34;: [], &#34;quasar&#34;: [], &#34;vue&#34;: [[14, 14]]}">
-    <span class="mk">5</span><span class="say"><b>Border inside the size.</b> Count the border inside the 200 × 120, not outside it.</span><span class="ref built" data-col="quasar"><b>built in</b> quasar.css sets box-sizing: border-box on every element.</span><span class="ref built" data-col="nicegui"><b>built in</b> Same as Quasar: NiceGUI loads quasar.css.</span><span class="ref" data-col="vue"><b>L14</b> <code>box-sizing: border-box</code></span>
+    <span class="mk">5</span><span class="say"><b>Border inside the size.</b> Count the border inside the 200 × 120, not outside it: <code>box-sizing: border-box</code>.</span><span class="ref built" data-col="quasar"><b>built in</b> quasar.css sets box-sizing: border-box on every element.</span><span class="ref built" data-col="nicegui"><b>built in</b> Same as Quasar: NiceGUI loads quasar.css.</span><span class="ref" data-col="vue"><b>L14</b> <code>box-sizing: border-box</code></span>
   </button>
   <button type="button" class="xrow" id="s1-1-x6" data-n="6" aria-pressed="false" data-refs="{&#34;nicegui&#34;: [[6, 6], [10, 10]], &#34;quasar&#34;: [[23, 25]], &#34;vue&#34;: [[28, 28]]}">
     <span class="mk">6</span><span class="say"><b>Start the app.</b> Create the app and show it in the page.</span><span class="ref" data-col="quasar"><b>L23–25</b> <code>app.use(Quasar).mount()</code></span><span class="ref" data-col="nicegui"><b>L6, L10</b> <code>ui.run(root)</code></span><span class="ref" data-col="vue"><b>L28</b> <code>createApp({}).mount()</code></span>
@@ -285,7 +327,7 @@ pip install -r requirements.txt</code></pre>
 
   </main>
 </div>
-<script id="page-data" type="application/json">{"cols": ["quasar", "nicegui", "vue"], "ui": {"copied": "Copied", "copy_code": "Copy", "press_ctrl_c": "Press Ctrl+C", "theme": "Theme", "theme_auto": "Auto", "theme_dark": "Dark", "theme_light": "Light"}}</script>
+<script id="page-data" type="application/json">{"cols": ["quasar", "nicegui", "vue"], "libs": {"mermaid": "https://cdn.jsdelivr.net/npm/mermaid@12.2.0/dist/mermaid.esm.min.mjs"}, "ui": {"copied": "Copied", "copy_code": "Copy", "diagram_error": "This diagram has an error, so its code is shown instead.", "diagram_offline": "The diagram needs internet to draw, so its code is shown instead.", "press_ctrl_c": "Press Ctrl+C", "theme": "Theme", "theme_auto": "Auto", "theme_dark": "Dark", "theme_light": "Light"}}</script>
 <script src="assets/site.js"></script>
 </body>
 </html>

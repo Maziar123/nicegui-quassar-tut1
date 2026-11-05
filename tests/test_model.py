@@ -159,3 +159,60 @@ def test_manifest_cannot_point_outside(tmp_path):
     build.build(tmp_path)
     (tmp_path / build.MANIFEST).write_text('{"owned": ["..", "/etc", "a/b", "index.html"]}')
     assert build.owned_entries(tmp_path) == ['index.html']
+
+
+# ---------------------------------------------------------------- Markdown (tutorial/mdrender.py)
+import mdrender  # noqa: E402
+
+
+def fake_fence(**kw):
+    return f'<FENCE {kw["kind"]} {kw["lang"]} title={kw["title"]!r} marked={sorted(kw["marked"])} rows={len(kw["rows"])}>'
+
+
+@pytest.mark.parametrize('info, kind, lang', [
+    ('css', 'code', 'css'), ('mermaid', 'mermaid', 'mermaid'), ('html preview', 'html', 'html'),
+    ('html', 'code', 'html'), ('', 'code', ''), ('nosuchlang', 'code', 'nosuchlang'),
+])
+def test_fence_kinds(info, kind, lang):
+    out = mdrender.Markdown(fence_html=fake_fence).block(f'```{info}\na\nb\n```\n')
+    assert f'<FENCE {kind} {lang} ' in out and 'rows=2' in out
+
+
+def test_fence_info_title_and_marked_lines():
+    out = mdrender.Markdown(fence_html=fake_fence).block('```css title="my file.css" hl=1,3-4\n1\n2\n3\n4\n```\n')
+    assert "title='my file.css'" in out and 'marked=[1, 3, 4]' in out
+
+
+def test_bad_fence_info_is_an_error():
+    with pytest.raises(ValueError):
+        mdrender.Markdown(fence_html=fake_fence).block('```css hl=x-y\na\n```\n')
+
+
+def test_headings_move_down_inside_a_step():
+    out = mdrender.Markdown(fence_html=fake_fence).block('# Title\n\n## Sub\n')
+    assert '<h4>Title</h4>' in out and '<h5>Sub</h5>' in out
+
+
+def test_inline_markdown_keeps_kbd_and_code():
+    out = mdrender.Markdown(fence_html=fake_fence).inline('Press <kbd>C</kbd> to see `box-sizing`.')
+    assert out == 'Press <kbd>C</kbd> to see <code>box-sizing</code>.'
+
+
+def test_mermaid_lexer_highlights():
+    rows = mdrender.highlight_rows('flowchart LR\n  A["x"] --> B\n', 'mermaid')
+    assert len(rows) == 2
+    assert '<span class="k">flowchart</span>' in rows[0] and '<span class="kc">LR</span>' in rows[0]
+    assert '<span class="o">--&gt;</span>' in rows[1]
+
+
+def test_markdown_blocks_and_translations(tmp_path, monkeypatch):
+    d = make_step(tmp_path, 'vue = { builtin = "b" }')
+    (d / '2-b.md').write_text('# B')
+    (d / '1-a.md').write_text('# A')
+    (d / '1-a.fa.md').write_text('# A in Persian')
+    site = model.load_site()
+    st = model.load_step(d, '9.9', site)
+    assert [(b.name, b.text) for b in st.blocks] == [('1-a', '# A'), ('2-b', '# B')]   # file order, no translations
+    site.lang = 'fa'
+    st = model.load_step(d, '9.9', site)
+    assert st.blocks[0].text == '# A in Persian' and st.blocks[1].text == '# B'       # fallback to English

@@ -127,6 +127,7 @@ class Site:
     setup_note: str
     columns: list[Column]
     hero: dict[str, str] = field(default_factory=dict)   # column id -> one line of code
+    libs: dict[str, str] = field(default_factory=dict)   # pinned browser libraries, e.g. mermaid -> URL
 
     @property
     def column_ids(self) -> list[str]:
@@ -216,6 +217,13 @@ class Shots:
 
 
 @dataclass
+class MdBlock:
+    """A Markdown file of a step (content/<section>/<step>/<name>.md), shown in the extra block."""
+    name: str
+    text: str
+
+
+@dataclass
 class Planned:
     num: str
     name: str
@@ -240,6 +248,7 @@ class Step:
     code: dict[str, Code]
     cross: list[Cross]
     shots: Shots | None
+    blocks: list[MdBlock] = field(default_factory=list)
     section: 'Section' = None
     ready = True
     prev: object = None
@@ -281,7 +290,7 @@ def load_site(lang: str | None = None) -> Site:
     cols = [Column(**{k: c[k] for k in ('id', 'name', 'what', 'lang', 'needs') if k in c}) for c in d['column']]
     return Site(lang=lang, default_lang=default, languages=languages, title=d['title'], subtitle=d['subtitle'],
                 lead=d['lead'], how_to_read=d['how_to_read'], setup=d['setup'], setup_note=d['setup_note'],
-                columns=cols, hero=d.get('hero', {}))
+                columns=cols, hero=d.get('hero', {}), libs=d.get('libs', {}))
 
 
 def section_dirs() -> list[Path]:
@@ -364,6 +373,13 @@ def load_step(tdir: Path, num: str, site: Site) -> Step:
 
     pic = tdir / 'picture.svg'
     s, k = num.split('.')
+    blocks = []
+    for f in sorted(tdir.glob('*.md')):
+        if '.' in f.stem:                    # why.fa.md is a translation of why.md, not a block of its own
+            continue
+        tr = f.with_name(f'{f.stem}.{site.lang}.md')
+        src = tr if site.lang != site.default_lang and tr.is_file() else f
+        blocks.append(MdBlock(name=f.stem, text=src.read_text()))
     return Step(
         num=num, id=f's{s}-{k}', slug=f'{s}-{k}', name=d['name'], dir=tdir,
         template=f'{tdir.relative_to(CONTENT).as_posix()}/step.html' if (tdir / 'step.html').is_file() else 'step.html',
@@ -371,7 +387,7 @@ def load_step(tdir: Path, num: str, site: Site) -> Step:
         picture=re.sub(r'<\?xml.*?\?>', '', pic.read_text()).strip() if pic.is_file() else '',
         picture_caption=d.get('picture_caption', ''), try_it=d.get('try_it', ''),
         notes={cid: Note(**v) for cid, v in d.get('columns', {}).items()},
-        code=code, cross=cross, shots=load_shots(tdir, site.column_ids))
+        code=code, cross=cross, shots=load_shots(tdir, site.column_ids), blocks=blocks)
 
 
 def file_hash(path: Path) -> str:

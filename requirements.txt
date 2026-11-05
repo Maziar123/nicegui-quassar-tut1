@@ -1,3 +1,4 @@
 nicegui==4.0.0      # NiceGUI columns; also installs fastapi and uvicorn
 pygments==2.21.0    # tutorial/build.py: code highlighting
 jinja2==3.1.6       # tutorial/build.py: templates (NiceGUI needs it too)
+markdown-it-py==4.2.0  # tutorial/mdrender.py: Markdown in content (code fences, tables)

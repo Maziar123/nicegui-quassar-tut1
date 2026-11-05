@@ -37,6 +37,7 @@
     theme = THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length];
     store.set('xref-theme', theme);
     applyTheme(theme);
+    document.dispatchEvent(new Event('xref:look'));   // diagrams redraw in the new colours
   });
 
   // ---------- text size: --z from 0.8 to 1.6
@@ -46,6 +47,7 @@
     zoom = Math.min(ZMAX, Math.max(ZMIN, Math.round(z * 10) / 10));
     root.style.setProperty('--z', zoom);
     store.set('xref-zoom', String(zoom));
+    document.dispatchEvent(new Event('xref:look'));   // diagrams redraw at the new size
   }
   applyZoom(zoom);
   document.querySelector('[data-tool="font-down"]')?.addEventListener('click', () => applyZoom(zoom - ZSTEP));
@@ -82,18 +84,76 @@
   narrow.addEventListener('change', applyCols);
   applyCols();
 
-  // ---------- copy buttons: raw code lives in each step's <script class="raw">
+  // ---------- copy buttons
+  // data-copy="<column>": the step's <script class="raw"> holds every column's code.
+  // data-copy-src: a Markdown fence; its own <script class="src"> holds the code.
+  function sourceOf(btn) {
+    try {
+      if (btn.hasAttribute('data-copy-src')) return JSON.parse(btn.closest('figure').querySelector('script.src').textContent);
+      return JSON.parse(btn.closest('.step').querySelector('script.raw').textContent)[btn.dataset.copy] || '';
+    } catch (e) { return ''; }
+  }
   document.querySelectorAll('.copy').forEach(btn => btn.addEventListener('click', async () => {
-    let raw = {};
-    try { raw = JSON.parse(btn.closest('.step').querySelector('script.raw').textContent); } catch (e) {}
-    try { await navigator.clipboard.writeText(raw[btn.dataset.copy] || ''); btn.textContent = T.copied || 'Copied'; }
+    try { await navigator.clipboard.writeText(sourceOf(btn)); btn.textContent = T.copied || 'Copied'; }
     catch (e) {
-      const r = document.createRange(); r.selectNodeContents(btn.closest('.col').querySelector('pre'));
-      const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+      const pre = (btn.closest('.col') || btn.closest('figure')).querySelector('pre');
+      const r = document.createRange(); r.selectNodeContents(pre);
+      const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
       btn.textContent = T.press_ctrl_c || 'Press Ctrl+C';
     }
     setTimeout(() => { btn.textContent = T.copy_code || 'Copy'; }, 1800);
   }));
+
+  // ---------- code + preview blocks (```mermaid, ```html preview): Both / Code / Preview
+  function setView(fig, view) {
+    fig.dataset.view = view;
+    fig.querySelectorAll('.cp-views button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
+  }
+  document.querySelectorAll('.cp').forEach(fig =>
+    fig.querySelectorAll('.cp-views button').forEach(b => b.addEventListener('click', () => setView(fig, b.dataset.view))));
+
+  // ---------- Mermaid: loaded only when the page has a diagram; pinned URL from content/site.toml
+  const diagrams = [...document.querySelectorAll('.cp[data-kind="mermaid"]')];
+  const darkMedia = matchMedia('(prefers-color-scheme: dark)');
+  const isDark = () => root.dataset.theme === 'dark' || (root.dataset.theme !== 'light' && darkMedia.matches);
+  let mermaid = null, drawing = 0;
+  function failed(fig, msg) {
+    fig.querySelector('.mermaid-out').innerHTML = '';
+    const p = document.createElement('p'); p.className = 'small'; p.textContent = msg;
+    fig.querySelector('.mermaid-out').append(p);
+    setView(fig, 'code');
+  }
+  async function drawDiagrams() {
+    if (!mermaid) return;
+    const run = ++drawing;                                   // a newer redraw cancels an older one
+    const font = getComputedStyle(document.body);
+    mermaid.initialize({
+      startOnLoad: false, securityLevel: 'strict', theme: isDark() ? 'dark' : 'default',
+      fontFamily: font.fontFamily, themeVariables: { fontSize: font.fontSize },   // grows on a TV and with A+
+    });
+    for (const [i, fig] of diagrams.entries()) {
+      let src = '';
+      try { src = JSON.parse(fig.querySelector('script.src').textContent); } catch (e) {}
+      try {
+        const { svg, bindFunctions } = await mermaid.render(`mmd-${i}-${run}`, src);
+        if (run !== drawing) return;
+        const out = fig.querySelector('.mermaid-out');
+        out.innerHTML = svg;
+        bindFunctions?.(out);
+        const vb = out.querySelector('svg')?.viewBox?.baseVal;          // natural size, used on small screens
+        if (vb && vb.width) out.style.setProperty('--natural', `${Math.round(vb.width)}px`);
+      } catch (e) {
+        failed(fig, T.diagram_error || 'This diagram has an error.');
+      }
+    }
+  }
+  if (diagrams.length && DATA.libs && DATA.libs.mermaid) {
+    import(DATA.libs.mermaid)
+      .then(mod => { mermaid = mod.default; drawDiagrams(); })
+      .catch(() => diagrams.forEach(fig => failed(fig, T.diagram_offline || 'The diagram needs internet to draw.')));
+    document.addEventListener('xref:look', drawDiagrams);
+    darkMedia.addEventListener('change', () => { if (!root.dataset.theme) drawDiagrams(); });
+  }
 
   // ---------- cross-comments: light up matching lines in every column
   const pinned = new Map();   // step id -> pinned row

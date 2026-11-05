@@ -23,6 +23,11 @@ source .venv/bin/activate
 pip install -r requirements.txt"""
 setup_note = "Quasar and Vue columns need only a browser. The NiceGUI column needs Python. On Arch Linux, use a virtual environment: the system pip is blocked by PEP 668."
 
+# Browser libraries the site itself loads, pinned to an exact version (an update must not change the page).
+# Mermaid draws ```mermaid blocks. 12.2.0 was released 2026-10-13.
+[libs]
+mermaid = "https://cdn.jsdelivr.net/npm/mermaid@12.2.0/dist/mermaid.esm.min.mjs"
+
 # One line from each column for the picture at the top: the same box, three ways.
 [hero]
 quasar = '<div style="width: 200px; …">'

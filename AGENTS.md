@@ -1,6 +1,8 @@
 # AGENTS.md
 
 Guide for coding agents (and people) working on this repository.
+`CLAUDE.md` is a symlink to this file: edit `AGENTS.md` only. (On Windows, enable git symlinks,
+`git config core.symlinks true`, or `CLAUDE.md` checks out as a one-line text file.)
 
 ## What this is
 
@@ -22,6 +24,7 @@ content/                         what the tutorial says (data, not layout)
   NN-name/NN-name/               one step
     step.toml                    name, intro, column notes, run / open, try_it, cross-comments
     step.html                    optional: overrides blocks of tutorial/templates/step.html
+    1-name.md, 2-name.md         optional Markdown blocks below the screenshot, in file-name order
     picture.svg                  the one picture next to the intro (use currentColor)
     quasar.html                  column 1, runs on its own in a browser
     nicegui_app.py               column 2, runs on its own with python
@@ -29,6 +32,7 @@ content/                         what the tutorial says (data, not layout)
     shots/                       made by tutorial/shoot.py (PNGs + result.json), committed
 tutorial/
   model.py                       reads content/ into typed objects (Site, Section, Step, Cross, Code, Shots)
+  mdrender.py                    Markdown: Pygments code fences, Mermaid + HTML code/preview blocks
   build.py                       renders the model with the templates into docs/
   shoot.py                       screenshots every column and compares the pixels (uses model.py)
   templates/                     Jinja2 templates (see "Templates and blocks")
@@ -38,8 +42,9 @@ docs/                            GENERATED. Never edit by hand. Published with G
   index.html                     summary + every section, each step embedded
   steps/<s>-<n>.html             each step on its own page
   assets/                        site.css, site.js, shots/ (only the screenshots a page shows)
-tests/test_model.py              markers, translation merge, language codes, build smoke test
+tests/test_model.py              markers, translations, Markdown fences, build safety, build smoke test
 design/wireframe-tv.html         the layout to follow
+design/tooling-2026-11.md        survey of frameworks and tools (why the generator stays custom; what to adopt next)
 steps/                           older stand-alone samples (material for Section 2), kept runnable
 ```
 
@@ -54,6 +59,7 @@ playwright install chromium           # once, for shoot.py
 python tutorial/shoot.py              # after changing any column file
 python tutorial/build.py              # after changing anything in content/ or tutorial/
 python -m pytest                      # before every commit
+ln -s AGENTS.md CLAUDE.md             # only if the symlink is ever lost
 python content/01-layout/01-one-box/nicegui_app.py   # run one NiceGUI column
 ```
 
@@ -78,8 +84,9 @@ Jinja2, autoescape on, `StrictUndefined` (a typo fails the build). Templates get
 - `index.html`: summary (`partials/summary.html`) + every section, each step embedded.
 - `step_page.html`: one step on its own page.
 - `step.html`: **the template for every step.** Blocks, top to bottom:
-  `head`, `intro`, `columns`, `shots`, `extra`, `cross`, `foot`, `nav`.
-- `macros.html`: reusable blocks: `chip`, `browser`, `card`, `code_block`, `column`, `shots`, `ref`, `cross`.
+  `head`, `intro`, `columns`, `shots`, `extra` (the step's Markdown blocks), `cross`, `foot`, `nav`.
+- `macros.html`: reusable blocks: `chip`, `browser`, `card`, `code_block`, `column`, `shots`, `ref`,
+  `cross`, `fence`. Templates render Markdown with `md.inline(text)` and `md.block(text)`.
 
 A step changes its own layout with `content/<section>/<step>/step.html`:
 
@@ -92,6 +99,30 @@ A step changes its own layout with `content/<section>/<step>/step.html`:
 Each step is rendered twice: once embedded in `docs/index.html` (`mode == "index"`) and once as
 `docs/steps/<s>-<n>.html` (`mode == "page"`). Links go through `href()`, `step_link()` and
 `step_page_href()`, so they work in both. Never hard-code a link to another page.
+
+## Markdown
+
+Text fields in `site.toml`, `section.toml` and `step.toml` (intro, notes, `say`, `try_it`, captions) are
+inline Markdown: `` `code` ``, `**bold**`, links, and inline HTML such as `<kbd>`. Every `*.md` file in a
+step folder is a block below the screenshot (`1-why-border.md`, `2-the-road.md`; the number sets the
+order). `# Heading` becomes the block title (headings move down three levels inside a step).
+Parser: markdown-it-py (CommonMark + tables + strikethrough), HTML allowed (content is ours).
+
+Code fences, info string `lang [preview] [title="…"] [hl=…] [height=…]`:
+
+| Fence | Shows |
+|---|---|
+| ` ```css title="vue.html" hl=5 ` | highlighted code (Pygments, same colours as the columns), line 5 marked |
+| ` ```mermaid ` | Mermaid code (highlighted by our `MermaidLexer`) and the drawn diagram, Both / Code / Preview |
+| ` ```html preview height=200 ` | HTML code and a live preview in a sandboxed iframe (no scripts run) |
+
+The markup of a fence is the `fence` macro in `macros.html`, not Python, so it is styled like every
+other block. Mermaid loads only on pages with a diagram, from the pinned URL in `[libs]` of
+`content/site.toml` (`mermaid@12.2.0`). It redraws when the theme or text size changes, and when it
+cannot load (offline), the block shows the code with a message. To update Mermaid: pick a release
+at least two weeks old, change the URL, and look at every diagram in both themes.
+
+A translation of a block sits next to it: `1-why-border.fa.md`. A missing translation falls back to English.
 
 ## Cross-comments (step.toml)
 
@@ -156,7 +187,8 @@ matches. After editing a column file, run the build and fix any marker it report
   by hand to match.
 - Audience is students: short sentences, plain words, no em-dash asides on the page.
 - Versions in use (tested 2026-11-05): NiceGUI 4.0.0 (bundles Vue 3.5.44, Quasar 2.35.2), FastAPI 0.162.0,
-  uvicorn 0.54.0, Pygments 2.21.0, Jinja2 3.1.6, Playwright 1.64.1. The HTML columns load `vue@3` and
+  uvicorn 0.54.0, Pygments 2.21.0, Jinja2 3.1.6, markdown-it-py 4.2.0, Playwright 1.64.1, pytest 9.2.0,
+  Mermaid 12.2.0 (browser). The HTML columns load `vue@3` and
   `quasar@2` from jsDelivr (Vue 3.5.45, Quasar 2.35.2 today).
 
 ## Adding a step

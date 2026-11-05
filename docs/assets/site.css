@@ -217,6 +217,7 @@ h1 small { display: block; font-size: .45em; color: var(--muted); margin-top: .3
 .code.has-hl .ln:not(.hl) .tx { opacity: .32; }
 .code .ln.hl { background: var(--hl-bg); border-left-color: var(--hl); }
 .code .ln.hl .mks i.on { background: var(--hl); color: #1a1a1a; }
+.code .ln.mark { background: rgba(98, 210, 173, .13); border-left-color: #62d2ad; }
 @media (prefers-reduced-motion: reduce) { .code .ln { transition: none; } }
 
 /* Pygments token colours (dark code panel) */
@@ -227,7 +228,7 @@ h1 small { display: block; font-size: .45em; color: var(--muted); margin-top: .3
 .code .na { color: #f5c46a; }
 .code .nf, .code .fm { color: #7fdcf5; }
 .code .nc, .code .nd { color: #ffcf73; }
-.code .nb, .code .bp, .code .mi, .code .mf, .code .m, .code .kt { color: #f79a72; }
+.code .nb, .code .bp, .code .mi, .code .mf, .code .mh, .code .il, .code .m, .code .kt { color: #f79a72; }
 .code .o, .code .p { color: #aab6c6; }
 .code .err { background: none; color: inherit; }
 
@@ -259,6 +260,38 @@ h1 small { display: block; font-size: .45em; color: var(--muted); margin-top: .3
 .ref.built { color: var(--muted); border-inline-start-style: dashed; }
 .ref.none { border-inline-start-color: var(--line); color: var(--muted); }
 
+/* Markdown blocks (a step's *.md files) and code fences: see tutorial/mdrender.py */
+.extra { display: grid; gap: max(12px, var(--u)); }
+.mdblock { padding: max(16px, calc(var(--u) * 1.3)) max(18px, calc(var(--u) * 1.5)); border-inline-start: 4px solid var(--hl); }
+.mdblock > :first-child { margin-top: 0; }
+.mdblock > :last-child { margin-bottom: 0; }
+.mdblock h4 { font-size: var(--fs-h4); margin: 0 0 .5em; }
+.mdblock h5, .mdblock h6 { font-size: 1.1em; margin: 1.2em 0 .4em; }
+.mdblock p, .mdblock ul, .mdblock ol { margin: 0 0 .8em; max-width: 75ch; }
+.mdblock table { border-collapse: collapse; margin: 0 0 .8em; font-size: .95em; }
+.mdblock th, .mdblock td { border: 1px solid var(--line); padding: .35em .7em; text-align: start; }
+.mdblock blockquote { margin: 0 0 .8em; padding-inline-start: 1em; border-inline-start: 3px solid var(--line); color: var(--muted); }
+.mdcode, .cp { margin: 1em 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--surface); }
+.mdbar { display: flex; flex-wrap: wrap; align-items: center; gap: .4em .8em; padding: .45em .8em; background: var(--soft); border-bottom: 1px solid var(--line);
+  font: var(--fs-small) var(--font-mono); }
+.mdbar .lang { font-weight: 700; }
+.mdbar .ftitle { color: var(--muted); }
+.mdbar .copy { --c: var(--line); }
+.mdcode .code, .cp .code { border-radius: 0; }
+.cp-views { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin-inline-start: auto; }
+.cp-views button { font: 600 var(--fs-small) var(--font-body); padding: .15em .8em; border: 0; background: var(--surface); cursor: pointer; }
+.cp-views button + button { border-inline-start: 1px solid var(--line); }
+.cp-views button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.cp-views + .copy { margin-inline-start: 0; }
+.cp-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.mdcode .cp-body { grid-template-columns: minmax(0, 1fr); }
+.cp[data-view="code"] .cp-preview, .cp[data-view="preview"] .code { display: none; }
+.cp[data-view="code"] .cp-body, .cp[data-view="preview"] .cp-body { grid-template-columns: minmax(0, 1fr); }
+.cp-preview { display: grid; place-items: center; padding: max(12px, var(--u)); min-height: 8em; background: var(--surface); border-inline-start: 1px solid var(--line); }
+.cp-preview iframe { width: 100%; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+.mermaid-out { width: 100%; display: grid; place-items: center; }
+.mermaid-out svg { max-width: 100%; height: auto; }
+
 .stepfoot { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: max(12px, var(--u)); margin-top: calc(var(--gut) * 1.4); }
 .extra { margin-top: calc(var(--gut) * 1.4); }
 .runs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .4em; }
@@ -289,6 +322,11 @@ footer p { margin: 0 0 .5em; max-width: 100ch; }
   .sbs { margin-top: 0; }
   .sumtop, .sumgrid, .intro, .stepfoot, .shared { grid-template-columns: minmax(0, 1fr); }
   .xhead { display: none; }
+  .cp-body { grid-template-columns: minmax(0, 1fr); }
+  .cp-preview { border-inline-start: 0; border-top: 1px solid var(--line); overflow-x: auto; place-items: start; }
+  /* a diagram keeps its natural size on small screens and scrolls inside its box */
+  .mermaid-out { place-items: start; }
+  .mermaid-out svg { min-width: var(--natural, auto); }
   .xrow { grid-template-columns: 2.4em minmax(0, 1fr); }
   .xrow .ref { grid-column: 2; }
   .step-head .alone { margin-inline-start: 0; width: 100%; }

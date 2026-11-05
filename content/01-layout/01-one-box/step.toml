@@ -1,4 +1,5 @@
-# Step 1.1. Read by tutorial/build.py.
+# Step 1.1. Read by tutorial/build.py. Text fields are Markdown (inline): `code`, **bold**, [links](...).
+# Every *.md file in this folder becomes a block below the screenshot, in file-name order.
 # Cross-comment markers: each column is either
 #   { at = [["start text"], ["start text", "end text"]], hint = "short code" }
 #   { builtin = "what the library does for you" }
@@ -10,13 +11,13 @@ name = "One empty box"
 intro = [
   "Draw one empty box, 200 × 120 px, with a dark 2 px border.",
   "Three columns, three ways to write it. They all draw the same pixels: the screenshot below compares them.",
-  "Look at cross-comments 3 and 5. Quasar and NiceGUI do two jobs for you that plain Vue has to write by hand.",
+  "Look at cross-comments 3 and 5. Quasar and NiceGUI do two jobs for you that plain Vue has to write by hand. The notes below the screenshot explain why.",
 ]
 picture_caption = "The target: one box, 16 px from the top-left corner of the page"
-try_it = "Change the border to <code>2px dashed #333</code> in all three columns. Run each one. Do they still look the same?"
+try_it = "Change the border to `2px dashed #333` in all three columns. Run each one. Do they still look the same?"
 
 [columns.quasar]
-note = "Quasar is a UI library for Vue. Its components, like <code>q-layout</code> and <code>q-page</code>, are written straight into the HTML."
+note = "Quasar is a UI library for Vue. Its components, like `q-layout` and `q-page`, are written straight into the HTML."
 open = "quasar.html"
 
 [columns.nicegui]
@@ -57,7 +58,7 @@ vue = { at = [[".box {", "=}"], ['<div class="box">']], hint = '.box + <div clas
 
 [[cross]]
 idea = "Border inside the size"
-say = "Count the border inside the 200 × 120, not outside it."
+say = "Count the border inside the 200 × 120, not outside it: `box-sizing: border-box`."
 quasar = { builtin = "quasar.css sets box-sizing: border-box on every element." }
 nicegui = { builtin = "Same as Quasar: NiceGUI loads quasar.css." }
 vue = { at = [["box-sizing: border-box"]], hint = "box-sizing: border-box" }

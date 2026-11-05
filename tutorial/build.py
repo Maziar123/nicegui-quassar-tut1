@@ -26,6 +26,7 @@ from jinja2 import Environment, FileSystemLoader, StrictUndefined
 from markupsafe import Markup
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import mdrender  # noqa: E402
 import model  # noqa: E402
 
 TEMPLATES = model.HERE / 'templates'
@@ -34,7 +35,8 @@ MANIFEST = '.xref-build.json'
 DEFAULT_OUT = model.ROOT / 'docs'
 LEGACY_OWNED = ['index.html', 'steps', 'assets']      # docs/ before the manifest existed
 SAFE_NAME = re.compile(r'[A-Za-z0-9][A-Za-z0-9._-]*')
-UI_KEYS_FOR_JS = ('copy_code', 'copied', 'press_ctrl_c', 'theme', 'theme_auto', 'theme_light', 'theme_dark')
+UI_KEYS_FOR_JS = ('copy_code', 'copied', 'press_ctrl_c', 'theme', 'theme_auto', 'theme_light', 'theme_dark',
+                  'diagram_offline', 'diagram_error')
 
 
 def make_env() -> Environment:
@@ -92,11 +94,19 @@ def build_language(lang: str, out_root: Path, env: Environment) -> list[Path]:
                 (out_root / 'assets' / 'shots').mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(st.shots.files[cid], out_root / 'assets' / name)
 
-    common = dict(site=site, t=t, lang=lang, cols=site.columns, sections=sections,
-                  page_data={'cols': site.column_ids, 'ui': {k: getattr(t, k) for k in UI_KEYS_FOR_JS}})
+    # Markdown fences are drawn by the `fence` macro, so their markup lives in the templates too
+    fence = env.get_template('macros.html').make_module({'t': t}).fence
+    md = mdrender.Markdown(fence_html=fence)
+    common = dict(site=site, t=t, lang=lang, cols=site.columns, sections=sections, md=md,
+                  page_data={'cols': site.column_ids, 'ui': {k: getattr(t, k) for k in UI_KEYS_FOR_JS},
+                             'libs': site.libs})
 
     def render_step(st, links, mode, assets):
-        return Markup(env.get_template(st.template).render(**common, **links.ctx(assets), step=st, sec=st.section, mode=mode))
+        try:
+            return Markup(env.get_template(st.template).render(
+                **common, **links.ctx(assets), step=st, sec=st.section, mode=mode))
+        except ValueError as e:                  # e.g. a bad code-fence info string in a .md file
+            raise model.ContentError(f'{model.rel(st.dir)}: {e}') from None
 
     written = []
     out.mkdir(parents=True, exist_ok=True)
