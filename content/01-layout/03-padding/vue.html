@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>1.3 Space inside a box (Vue 3)</title>
+  <style>
+    body { margin: 0; }
+    .page { padding: 16px; }
+    .row { display: flex; flex-wrap: wrap; gap: 16px; }
+    .box {
+      width: 200px;
+      height: 120px;
+      border: 2px solid #333;
+      box-sizing: border-box;
+      padding: 16px;
+    }
+    .dot {
+      width: 40px;
+      height: 40px;
+      background: #333;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="page">
+      <div class="row">
+        <div class="box">  <!-- left -->
+          <div class="dot"></div>
+        </div>
+        <div class="box">  <!-- right -->
+          <div class="dot"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createApp } from 'https://cdn.jsdelivr.net/npm/vue@3/dist/vue.esm-browser.prod.js'
+
+    createApp({}).mount('#app')
+  </script>
+</body>
+</html>

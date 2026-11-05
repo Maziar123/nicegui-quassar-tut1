@@ -265,20 +265,30 @@ def test_broken_mermaid_leaves_nothing_behind(open_page):
 
 
 def test_bracket_keys_move_by_position(open_page):
-    """From a section header after the last step, ] once jumped back to the first step."""
+    """Regression: from a section header, ] once jumped back to the first step of the page."""
     pg = open_page(size=(1920, 1080))
-    last_part = pg.evaluate('[...document.querySelectorAll(".section")].at(-1).id')
-    pg.evaluate(f'document.getElementById("{last_part}").scrollIntoView()')
+    tops = '[...document.querySelectorAll(".step")].map(s => Math.round(s.getBoundingClientRect().top))'
+    ids = pg.evaluate('[...document.querySelectorAll(".step")].map(s => s.id)')
+    at_top = lambda n: -2 < pg.evaluate(tops)[n] < 120  # noqa: E731
+    # from the last section's header, ] goes to the first step after it
+    first_after = pg.evaluate('[...document.querySelectorAll(".section")].at(-1).querySelector(".step").id')
+    pg.evaluate('[...document.querySelectorAll(".section")].at(-1).scrollIntoView()')
+    pg.wait_for_timeout(200)
+    pg.keyboard.press(']')
+    pg.wait_for_timeout(300)
+    assert at_top(ids.index(first_after)), 'did not go to the next step after the section header'
+    # from the last step, ] stays
+    pg.evaluate('[...document.querySelectorAll(".step")].at(-1).scrollIntoView()')
     pg.wait_for_timeout(200)
     y = pg.evaluate('scrollY')
-    pg.keyboard.press(']')  # no step below: stay
-    pg.wait_for_timeout(600)
+    pg.keyboard.press(']')
+    pg.wait_for_timeout(300)
     assert abs(pg.evaluate('scrollY') - y) < 2
-    tops = '[...document.querySelectorAll(".step")].map(s => Math.round(s.getBoundingClientRect().top))'
-    for n in range(len(steps()) - 1, -1, -1):  # [ walks up through every step, last to first
+    # [ walks up through every step
+    for n in range(len(ids) - 2, -1, -1):
         pg.keyboard.press('[')
         pg.wait_for_timeout(300)
-        assert -2 < pg.evaluate(tops)[n] < 120, f'step {n + 1} not at the top after ['
+        assert at_top(n), f'{ids[n]} not at the top after ['
 
 
 def test_selecting_code_copies_only_the_code(open_page):

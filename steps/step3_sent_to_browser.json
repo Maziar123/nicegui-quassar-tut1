@@ -1,9 +1,0 @@
-{
-  "0": {"tag": "q-layout", "class": ["nicegui-layout"], "props": {"view": "hhh lpr fff"}, "children": [1]},
-  "1": {"tag": "q-page-container", "children": [2]},
-  "2": {"tag": "q-page", "children": [3]},
-  "3": {"tag": "div", "class": ["nicegui-content"], "children": [4]},
-  "4": {"tag": "div", "class": ["nicegui-row", "row"], "style": {"gap": "16px"}, "children": [5, 6]},
-  "5": {"tag": "div", "style": {"width": "200px", "height": "120px", "border": "2px solid #333"}},
-  "6": {"tag": "div", "style": {"width": "200px", "height": "120px", "border": "2px solid #333"}}
-}

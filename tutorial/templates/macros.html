@@ -62,7 +62,8 @@
     {%- if s.stale %}
     <p class="stale" role="status">⚠ {{ t.shot_stale.format(names=site.names(s.stale)) }}</p>
     {%- endif %}
-    <p class="small">{{ t.shot_meta.format(w=s.w, h=s.h, scale=s.scale, date=s.date) }}</p>
+    <p class="small">{{ t.shot_meta.format(w=s.w, h=s.h, scale=s.scale, date=s.date) }}
+      {%- if s.clicks %} {{ t.shot_clicks.format(n=s.clicks | length) }}{% endif %}</p>
   </div>
   <div class="{{ 'shot-one' if s.same else 'shots-each' }}">
     {%- for cid, url in s.urls.items() %}{% set name = site.column(cid).name %}

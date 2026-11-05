@@ -14,8 +14,13 @@ On every page, the top bar lets you hide or show a column, change the text size 
 |---|---|---|
 | 1.1 | [`content/01-layout/01-one-box`](content/01-layout/01-one-box) | One empty box: page frame, padding, `box-sizing` |
 | 1.2 | [`content/01-layout/02-two-boxes`](content/01-layout/02-two-boxes) | Two boxes in a row: flexbox, gap, wrapping (NiceGUI rows have both built in) |
+| 1.3 | [`content/01-layout/03-padding`](content/01-layout/03-padding) | Padding with Quasar's `q-pa-md`, which NiceGUI uses too |
+| 2.1 | [`content/02-under-the-hood/01-element-tree`](content/02-under-the-hood/01-element-tree) | The page as a tree, drawn with `h()`; the real JSON NiceGUI sends |
+| 2.2 | [`content/02-under-the-hood/02-mini-nicegui`](content/02-under-the-hood/02-mini-nicegui) | A mini NiceGUI by hand: Python tree, FastAPI, Vue (the Vue column is a server) |
+| 3.1 | [`content/03-events/01-click`](content/03-events/01-click) | Click a box: in the browser (Quasar, Vue) or a round trip to Python (NiceGUI) |
+| 3.2 | [`content/03-events/02-add-boxes`](content/03-events/02-add-boxes) | Add a box per click: draw from a count (`v-for`) or add an element (NiceGUI) |
 
-More steps are planned and listed on the page: spacing, the element tree, server to browser, a mini NiceGUI, clicks and updates.
+All three sections are complete: Layout, Under the hood, Events.
 
 ## Run a step yourself
 
@@ -71,11 +76,10 @@ run, justfile            ./run <command>: every command; .github/ holds CI, Page
 docs/                    the built site (generated, committed for GitHub Pages)
 tests/                   pytest tests
 design/wireframe-tv.html the layout to follow
-steps/                   older stand-alone samples, kept as material for Section 2
 ```
 
 To publish with GitHub Pages: Settings → Pages → Source: **GitHub Actions** (the `Pages` workflow then publishes `docs/` on every push to `main`). Deploy from a branch (`main` / `docs`) also works.
 
 ## Tested with
 
-NiceGUI 4.0.0 (bundles Vue 3.5.44 and Quasar 2.35.2), Vue 3.5.45 and Quasar 2.35.2 from the CDN, FastAPI 0.162.0, uvicorn 0.54.0, Jinja2 3.1.6, Pygments 2.21.0, markdown-it-py 4.2.0, Playwright 1.64.1, pytest 9.2.0, ruff 0.17.3, uv 0.13.7, Mermaid 12.2.0 with headless Chromium. Tested 5 November 2026. In Steps 1.1 and 1.2, the three columns render identical pixels.
+NiceGUI 4.0.0 (bundles Vue 3.5.44 and Quasar 2.35.2), Vue 3.5.45 and Quasar 2.35.2 from the CDN, FastAPI 0.162.0, uvicorn 0.54.0, Jinja2 3.1.6, Pygments 2.21.0, markdown-it-py 4.2.0, Playwright 1.64.1, pytest 9.2.0, ruff 0.17.3, uv 0.13.7, Mermaid 12.2.0 with headless Chromium. Tested 5 November 2026. In all seven steps the three columns render identical pixels; in Steps 3.1 and 3.2 after a click on the same spot.

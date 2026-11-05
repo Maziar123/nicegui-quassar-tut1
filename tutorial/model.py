@@ -225,6 +225,7 @@ class Shots:
     compared_to: str
     libraries: dict[str, dict]
     stale: list[str] = field(default_factory=list)  # columns whose file changed after the screenshot
+    clicks: list = field(default_factory=list)  # [x, y] clicks made before the screenshot
     urls: dict[str, str] = field(default_factory=dict)  # column id -> path under docs/assets/, set by build
 
 
@@ -468,6 +469,7 @@ def load_shots(tdir: Path, col_ids: list[str]) -> Shots | None:
         compared_to=r['compared_to'],
         libraries=r['libraries'],
         stale=stale,
+        clicks=r.get('clicks', []),
     )
 
 

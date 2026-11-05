@@ -47,14 +47,13 @@
   <a class="sec" href="../index.html#sec-1" data-target="sec-1"><span class="secnum">1</span>Layout</a>
   <a class="st" href="1-1.html" data-target="s1-1"><span>1.1</span>One empty box</a>
   <a class="st" href="#s1-2" data-target="s1-2"><span>1.2</span>Two boxes side by side</a>
-  <span class="st planned"><span>1.3</span>Spacing between boxes</span>
+  <a class="st" href="1-3.html" data-target="s1-3"><span>1.3</span>Space inside a box</a>
   <a class="sec" href="../index.html#sec-2" data-target="sec-2"><span class="secnum">2</span>Under the hood</a>
-  <span class="st planned"><span>2.1</span>The element tree</span>
-  <span class="st planned"><span>2.2</span>From server to browser</span>
-  <span class="st planned"><span>2.3</span>Build a mini NiceGUI</span>
+  <a class="st" href="2-1.html" data-target="s2-1"><span>2.1</span>The element tree</a>
+  <a class="st" href="2-2.html" data-target="s2-2"><span>2.2</span>Build a mini NiceGUI</a>
   <a class="sec" href="../index.html#sec-3" data-target="sec-3"><span class="secnum">3</span>Events</a>
-  <span class="st planned"><span>3.1</span>Click a box</span>
-  <span class="st planned"><span>3.2</span>Change the page from code</span>
+  <a class="st" href="3-1.html" data-target="s3-1"><span>3.1</span>Click a box</a>
+  <a class="st" href="3-2.html" data-target="s3-2"><span>3.2</span>Add a box on each click</a>
 </nav>
 
   <main class="content" id="main" tabindex="-1">
@@ -192,7 +191,7 @@ third also wraps, so its last box moves to a new line:</p>
     
 <div class="card try"><h2 class="card-title">Try it</h2><p>Make the window narrower than 448 px (16 + 200 + 16 + 200 + 16). In all three columns the right box jumps under the left one: that is the wrap from cross-comment 4.</p></div>
   </div>
-  <nav class="prevnext" aria-label="Step"><a class="prev" href="1-1.html">← 1.1 One empty box</a><span>→ 1.3 Spacing between boxes (coming)</span>
+  <nav class="prevnext" aria-label="Step"><a class="prev" href="1-1.html">← 1.1 One empty box</a><a class="next" href="1-3.html">→ 1.3 Space inside a box</a>
   </nav>
   <script type="application/json" class="raw">{"nicegui": "from nicegui import ui\n\nBOX = \u0027width: 200px; height: 120px; border: 2px solid #333\u0027\n\n\ndef root():\n    with ui.row():\n        ui.element(\u0027div\u0027).style(BOX)  # left\n        ui.element(\u0027div\u0027).style(BOX)  # right\n\n\nui.run(root, title=\u00271.2 Two boxes side by side (NiceGUI)\u0027)\n", "quasar": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\n\u003chead\u003e\n  \u003cmeta charset=\"UTF-8\"\u003e\n  \u003cmeta name=\"viewport\" content=\"width=device-width, initial-scale=1\"\u003e\n  \u003ctitle\u003e1.2 Two boxes side by side (Quasar)\u003c/title\u003e\n  \u003clink href=\"https://cdn.jsdelivr.net/npm/quasar@2/dist/quasar.prod.css\" rel=\"stylesheet\"\u003e\n\u003c/head\u003e\n\u003cbody\u003e\n  \u003cdiv id=\"q-app\"\u003e\n    \u003cq-layout view=\"hhh lpr fff\"\u003e\n      \u003cq-page-container\u003e\n        \u003cq-page class=\"q-pa-md\"\u003e\n          \u003cdiv class=\"row\" style=\"gap: 16px\"\u003e\n            \u003cdiv style=\"width: 200px; height: 120px; border: 2px solid #333\"\u003e\u003c/div\u003e  \u003c!-- left --\u003e\n            \u003cdiv style=\"width: 200px; height: 120px; border: 2px solid #333\"\u003e\u003c/div\u003e  \u003c!-- right --\u003e\n          \u003c/div\u003e\n        \u003c/q-page\u003e\n      \u003c/q-page-container\u003e\n    \u003c/q-layout\u003e\n  \u003c/div\u003e\n\n  \u003cscript src=\"https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js\"\u003e\u003c/script\u003e\n  \u003cscript src=\"https://cdn.jsdelivr.net/npm/quasar@2/dist/quasar.umd.prod.js\"\u003e\u003c/script\u003e\n  \u003cscript\u003e\n    const app = Vue.createApp({})\n    app.use(Quasar)\n    app.mount(\u0027#q-app\u0027)\n  \u003c/script\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n", "vue": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\n\u003chead\u003e\n  \u003cmeta charset=\"UTF-8\"\u003e\n  \u003cmeta name=\"viewport\" content=\"width=device-width, initial-scale=1\"\u003e\n  \u003ctitle\u003e1.2 Two boxes side by side (Vue 3)\u003c/title\u003e\n  \u003cstyle\u003e\n    body { margin: 0; }\n    .page { padding: 16px; }\n    .row {\n      display: flex;\n      flex-wrap: wrap;\n      gap: 16px;\n    }\n    .box {\n      width: 200px;\n      height: 120px;\n      border: 2px solid #333;\n      box-sizing: border-box;\n    }\n  \u003c/style\u003e\n\u003c/head\u003e\n\u003cbody\u003e\n  \u003cdiv id=\"app\"\u003e\n    \u003cdiv class=\"page\"\u003e\n      \u003cdiv class=\"row\"\u003e\n        \u003cdiv class=\"box\"\u003e\u003c/div\u003e  \u003c!-- left --\u003e\n        \u003cdiv class=\"box\"\u003e\u003c/div\u003e  \u003c!-- right --\u003e\n      \u003c/div\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\n  \u003cscript type=\"module\"\u003e\n    import { createApp } from \u0027https://cdn.jsdelivr.net/npm/vue@3/dist/vue.esm-browser.prod.js\u0027\n\n    createApp({}).mount(\u0027#app\u0027)\n  \u003c/script\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n"}</script>
 </article>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>2.1 The element tree (Vue 3)</title>
+  <style>
+    body { margin: 0; }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script type="module">
+    import { createApp, h } from 'https://cdn.jsdelivr.net/npm/vue@3/dist/vue.esm-browser.prod.js'
+
+    const BOX = { width: '200px', height: '120px', border: '2px solid #333', boxSizing: 'border-box' }
+
+    // the page as a tree: a tag, its props, its children
+    const tree =
+      { tag: 'div', props: { style: { padding: '16px' } }, children: [
+        { tag: 'div', props: { style: { display: 'flex', flexWrap: 'wrap', gap: '16px' } }, children: [
+          { tag: 'div', props: { style: BOX } },  // left
+          { tag: 'div', props: { style: BOX } },  // right
+        ] },
+      ] }
+
+    const render = node => h(node.tag, node.props, (node.children || []).map(render))
+
+    createApp({ render: () => render(tree) }).mount('#app')
+  </script>
+</body>
+</html>

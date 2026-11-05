@@ -378,3 +378,9 @@ def test_cdn_pattern_handles_scoped_and_unversioned_packages():
     assert m and m.group(1) == '@quasar/extras' and m.group(2) == 'roboto-font/roboto-font.css'
     m = shoot.CDN.match('https://unpkg.com/vue/dist/vue.esm-browser.prod.js')
     assert m and m.group(1) == 'vue' and m.group(2) == 'dist/vue.esm-browser.prod.js'
+
+
+def test_tables_scroll_in_a_focusable_box():
+    """A wide table must scroll inside its own box, and keyboard users must reach it (axe)."""
+    out = mdrender.Markdown(fence_html=fake_fence).block('| a | b |\n|---|---|\n| 1 | 2 |\n')
+    assert out.startswith('<div class="tablewrap" tabindex="0">\n<table>') and out.rstrip().endswith('</table>\n</div>')

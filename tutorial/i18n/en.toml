@@ -55,6 +55,7 @@ shot_same = "All {n} columns render this page. Their screenshots were compared p
 shot_differ = "The columns do not render the same pixels. Each screenshot is shown below."
 shot_none = "No screenshot yet. Run: python tutorial/shoot.py"
 shot_meta = "Headless Chromium, {w} × {h} CSS px at {scale}× scale, {date}."
+shot_clicks = "Taken after {n} click(s) on the same spot in every column."
 px_differ = "{n} px differ"
 size_differs = "different size"
 shot_stale = "Out of date: {names} changed after this screenshot. Run: python tutorial/shoot.py"

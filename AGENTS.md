@@ -28,6 +28,8 @@ content/                         what the tutorial says (data, not layout)
     picture.svg                  the one picture next to the intro (use currentColor)
     quasar.html                  column 1, runs on its own in a browser
     nicegui_app.py               column 2, runs on its own with python
+                                 (a .py column that does not import nicegui is a plain server, like
+                                 vue_server.py in step 2.2: it must read its port from PORT)
     vue.html                     column 3, runs on its own in a browser
                                  (a column file is <id>.html / <id>.py or <id>_<name>; vue-old.html is ignored)
     shots/                       made by tutorial/shoot.py (PNGs + result.json), committed
@@ -53,7 +55,6 @@ run                              root shortcut: ./run <command> = uv run just <c
 .pre-commit-config.yaml          git hooks (prek); .github/ CI, Pages deploy, Dependabot
 design/wireframe-tv.html         the layout to follow
 design/tooling-2026-11.md        survey of frameworks and tools (why the generator stays custom; what to adopt next)
-steps/                           older stand-alone samples (material for Section 2), kept runnable
 ```
 
 ## Toolbox and commands
@@ -118,6 +119,9 @@ aside first and puts them back if it fails half-way, so `docs/` is always the ol
 (or `XREF_NPM_DIR`) serves the CDN files from unpacked npm packages (`DIR/vue/`, `DIR/quasar/`,
 `DIR/mermaid/`) when jsDelivr / unpkg are blocked. They are the same files, because both CDNs mirror the
 npm registry. When two columns differ, `shots/diff-<column>.png` shows the differing pixels in red.
+A step can click before the screenshot, to prove an event does the same in every column:
+`[shoot] clicks = [[116, 76]]` in `step.toml` (CSS px; 116, 76 is the middle of a box at the top
+left). The page then says the shot was taken after the clicks.
 
 ## Templates and blocks
 

@@ -1,3 +1,3 @@
 name = "Under the hood"
 about = "What NiceGUI sends to the browser, and how to build that road by hand."
-planned = ["The element tree", "From server to browser", "Build a mini NiceGUI"]
+planned = []

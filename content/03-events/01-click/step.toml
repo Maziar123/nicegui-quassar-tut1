@@ -1,0 +1,54 @@
+# Step 3.1. Read by tutorial/build.py. Text fields are Markdown (inline). See AGENTS.md for the cross-comment rules.
+
+name = "Click a box"
+
+intro = [
+  "Make the box react: one click fills it, the next click empties it again.",
+  "Three things are needed: something that **remembers** if the box is filled, a **click handler**, and a **look** that follows what is remembered.",
+  "The big difference is cross-comment 4. In Quasar and Vue the click is handled in the browser. In NiceGUI it travels to your Python on the server, and the change travels back.",
+]
+picture_caption = "One click fills the box, the next empties it"
+try_it = "Run the NiceGUI column, then stop the server and click the box. The box does not change, and NiceGUI reports that the connection is lost: the click needs Python. The Quasar and Vue columns keep working, because they need only the browser."
+
+[shoot]
+clicks = [[116, 76]]  # the middle of the box: 16 px page padding + half of 200 × 120
+
+[columns.quasar]
+note = "`ref(false)` remembers, `@click` flips it, and `:style` adds the dark background while it is true."
+open = "quasar.html"
+
+[columns.nicegui]
+note = "No variable: the box's own classes remember. `.on('click', …)` runs Python, which toggles the `filled` class."
+run = "python nicegui_app.py"
+
+[columns.vue]
+note = "The same as Quasar, with a CSS class instead of a style: `:class` adds `filled` while it is true."
+open = "vue.html"
+
+[[cross]]
+idea = "Remember"
+say = "Something must remember whether the box is filled right now."
+quasar = { at = [["const filled = ref(false)"]], hint = "ref(false)" }
+nicegui = { builtin = "No variable needed: the element keeps its list of classes, and Python can read it." }
+vue = { at = [["ref(false)"]], hint = "ref(false)" }
+
+[[cross]]
+idea = "Click handler"
+say = "Code that runs when the box is clicked."
+quasar = { at = [['@click="filled = !filled"']], hint = '@click="filled = !filled"' }
+nicegui = { at = [["box.on('click'"]], hint = ".on('click', …)" }
+vue = { at = [['@click="filled = !filled"']], hint = '@click="filled = !filled"' }
+
+[[cross]]
+idea = "Look"
+say = "The dark background, there only while the box is filled."
+quasar = { at = [['@click="filled = !filled"'], ["const dark ="]], hint = ':style="[box, filled && dark]"' }
+nicegui = { at = [["ui.add_css("], ["box.on('click'"]], hint = ".classes(toggle='filled')" }
+vue = { at = [[".filled {"], ['@click="filled = !filled"']], hint = ':class="{ filled }"' }
+
+[[cross]]
+idea = "Where it runs"
+say = "The click handler runs in the browser, or on the server."
+quasar = { builtin = "In the browser: Vue changes the page at once. No server needed." }
+nicegui = { builtin = "In Python on the server: the click goes over a websocket, Python toggles the class, and NiceGUI sends the change back." }
+vue = { builtin = "In the browser, like Quasar." }

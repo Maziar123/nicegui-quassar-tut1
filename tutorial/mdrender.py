@@ -157,6 +157,9 @@ class Markdown:
         self.shift = heading_shift
         self.md = MarkdownIt('commonmark', {'html': True}).enable(['table', 'strikethrough'])
         self.md.add_render_rule('fence', self._fence)
+        # a wide table scrolls inside its own box; tabindex lets keyboard users scroll it too (axe)
+        self.md.add_render_rule('table_open', lambda *a: '<div class="tablewrap" tabindex="0">\n<table>\n')
+        self.md.add_render_rule('table_close', lambda *a: '</table>\n</div>\n')
 
     def _fence(self, tokens, idx, options, env):  # a bound method: markdown-it passes no renderer
         tok = tokens[idx]

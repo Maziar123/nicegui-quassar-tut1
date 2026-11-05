@@ -37,10 +37,12 @@ steps:
 nicegui num="1.1":
     @f="$(uv run python tutorial/steps.py {{ quote(num) }} nicegui)" && uv run python "$f"
 
-# open an HTML column of a step in the browser, for example: ./run open 1.1 vue
+# open a column of a step: an HTML file in the browser, a Python server (step 2.2) started.
+# For example: ./run open 1.1 vue
 open num="1.1" col="quasar":
-    @f="$(uv run python tutorial/steps.py {{ quote(num) }} {{ quote(col) }})" && echo "Opening $f" \
-      && uv run python -m webbrowser -t "file://$f"
+    @f="$(uv run python tutorial/steps.py {{ quote(num) }} {{ quote(col) }})" && case "$f" in \
+      *.py) echo "Starting $f on http://127.0.0.1:8080 (Ctrl+C stops)"; uv run python "$f" ;; \
+      *) echo "Opening $f"; uv run python -m webbrowser -t "file://$f" ;; esac
 
 # fast tests (no browser)
 test *args:

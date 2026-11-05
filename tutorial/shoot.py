@@ -117,15 +117,15 @@ def route_cdn(page, npm_dir):
     page.route(re.compile(r'https://(cdn\.jsdelivr\.net|unpkg\.com)/.*'), handle)
 
 
-def render(browser, url, npm_dir):
+def render(browser, url, npm_dir, clicks=()):
     page = browser.new_page(viewport=VIEW, device_scale_factor=SCALE)
     try:
-        return _render(page, url, npm_dir)
+        return _render(page, url, npm_dir, clicks)
     finally:
         page.close()
 
 
-def _render(page, url, npm_dir):
+def _render(page, url, npm_dir, clicks):
     errors = []
     page.on('pageerror', lambda e: errors.append(str(e)))
     page.on('requestfailed', lambda r: errors.append(f'{r.url}: {r.failure}'))
@@ -133,6 +133,9 @@ def _render(page, url, npm_dir):
         route_cdn(page, npm_dir)
     page.goto(url, wait_until='networkidle')
     page.wait_for_timeout(300)
+    for x, y in clicks:  # the same spot in every column, so the shots prove the event does the same
+        page.mouse.click(x, y)
+        page.wait_for_timeout(700)  # NiceGUI: the click goes to Python and the change comes back
     if errors:
         raise RuntimeError(f'{url}:\n  ' + '\n  '.join(errors))
     libs = page.evaluate("""async () => {
@@ -158,21 +161,28 @@ def shoot_step(browser, step, npm_dir, columns):
     for old in shots.glob('*.png'):  # a column that no longer exists must not keep its picture
         if old.stem not in files:
             old.unlink()
+    clicks = [tuple(c) for c in model.parse_toml(step / 'step.toml').get('shoot', {}).get('clicks', [])]
     pngs, libs = {}, {}
     for col, f in files.items():
         if f.suffix == '.py':
+            # a NiceGUI column runs through NICEGUI_RUNNER; any other Python column is a plain server
+            # that reads its port from the PORT environment variable (see content/02-*)
+            nice = bool(re.search(r'^\s*(from|import) nicegui\b', f.read_text(encoding='utf-8'), re.M))
             port = free_port()
+            cmd = [sys.executable, '-c', NICEGUI_RUNNER, str(f), str(port)] if nice else [sys.executable, str(f)]
             log = tempfile.TemporaryFile('w+')  # a file, not a pipe: a full pipe would block the server
             proc = subprocess.Popen(
-                [sys.executable, '-c', NICEGUI_RUNNER, str(f), str(port)],
+                cmd,
                 cwd=step,
+                env={**os.environ, 'PORT': str(port)},
                 stdout=log,
                 stderr=subprocess.STDOUT,
                 text=True,
             )
             try:
                 wait_http(f'http://127.0.0.1:{port}/', proc, log)
-                pngs[col], libs[col] = render(browser, f'http://127.0.0.1:{port}/', None)
+                url = f'http://127.0.0.1:{port}/'
+                pngs[col], libs[col] = render(browser, url, None if nice else npm_dir, clicks)
             finally:
                 proc.terminate()
                 try:
@@ -181,9 +191,10 @@ def shoot_step(browser, step, npm_dir, columns):
                     proc.kill()
                     proc.wait()
                 log.close()
-            libs[col]['nicegui'] = version('nicegui')
+            if nice:
+                libs[col]['nicegui'] = version('nicegui')
         else:
-            pngs[col], libs[col] = render(browser, f.as_uri(), npm_dir)
+            pngs[col], libs[col] = render(browser, f.as_uri(), npm_dir, clicks)
         (shots / f'{col}.png').write_bytes(pngs[col])
 
     first = next(iter(pngs))
@@ -210,6 +221,7 @@ def shoot_step(browser, step, npm_dir, columns):
         'sources': {c: model.file_hash(f) for c, f in files.items()},  # lets the build spot stale shots
         'libraries': libs,
         'npm_dir_used': bool(npm_dir),
+        'clicks': [list(c) for c in clicks],
     }
     (shots / 'result.json').write_text(json.dumps(result, indent=2) + '\n', encoding='utf-8')
     same = all(v == 0 for v in diff.values())
