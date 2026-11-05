@@ -49,6 +49,7 @@ steps/              the five tested sample files (+ captured JSON)
 tutorial/build.py   generates docs/index.html; step texts and layer data live here
 tutorial/template.html   page layout, styles and script
 docs/index.html     the built tutorial (generated, committed for easy viewing)
+design/wireframe.html    low-fidelity layout of docs/index.html, mapped to template.html and build.py
 ```
 
 ## Tested with

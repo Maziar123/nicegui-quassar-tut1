@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutorial Page Wireframe</title>
+<style>
+:root {
+  --bg: #f4f4f2; --paper: #ffffff; --ink: #222; --muted: #6b6b6b;
+  --box: #e6e6e3; --box2: #d4d4d0; --line: #9a9a95; --pin: #d9480f;
+  --mono: ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161616; --paper: #1f1f1f; --ink: #e6e6e6; --muted: #a0a0a0;
+    --box: #2c2c2c; --box2: #3a3a3a; --line: #6a6a6a; --pin: #ff8a50; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #161616; --paper: #1f1f1f; --ink: #e6e6e6; --muted: #a0a0a0;
+  --box: #2c2c2c; --box2: #3a3a3a; --line: #6a6a6a; --pin: #ff8a50; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 var(--sans); }
+.page { max-width: 1240px; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 26px; margin: 0 0 4px; }
+.sub { color: var(--muted); margin: 0 0 28px; max-width: 80ch; }
+h2.frame-title { font: 600 13px var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 36px 0 10px; }
+
+/* frames */
+.frame { background: var(--paper); border: 2px solid var(--line); border-radius: 10px; overflow: hidden; }
+.frame-bar { display: flex; gap: 6px; align-items: center; padding: 8px 12px; border-bottom: 2px solid var(--line); }
+.frame-bar i { width: 10px; height: 10px; border-radius: 50%; background: var(--box2); }
+.frame-bar span { margin-left: 8px; font: 12px var(--mono); color: var(--muted); }
+.in { padding: 0 20px; }
+
+/* wire primitives */
+.b { position: relative; background: var(--box); border: 1.5px solid var(--line); border-radius: 6px; padding: 10px 12px; }
+.b.d { background: transparent; border-style: dashed; }
+.b.dark { background: var(--box2); }
+.t { font: 600 12px var(--mono); color: var(--ink); }
+.s { font-size: 12px; color: var(--muted); }
+.bar { height: 8px; border-radius: 4px; background: var(--box2); margin-top: 6px; }
+.bar.w30 { width: 30%; } .bar.w50 { width: 50%; } .bar.w70 { width: 70%; } .bar.w90 { width: 90%; }
+.pin { position: absolute; top: -10px; left: -10px; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--pin); color: #fff; font: 700 12px/22px var(--sans); text-align: center; z-index: 2; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.stack { display: flex; flex-direction: column; gap: 10px; }
+.sec { position: relative; border-top: 1.5px dashed var(--line); padding: 22px 0; }
+
+/* desktop layout (mirrors template.html grid ratios) */
+.stepbar { position: relative; display: flex; gap: 14px; align-items: center; padding: 10px 20px; border-bottom: 1.5px solid var(--line); background: var(--box); }
+.chip { font: 11px var(--mono); padding: 3px 10px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--paper); white-space: nowrap; }
+.chip.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.intro { display: grid; grid-template-columns: 1.15fr 1fr; gap: 28px; padding: 26px 0; position: relative; }
+.mock-browser { border: 1.5px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--paper); }
+.mock-browser .mb-bar { height: 22px; border-bottom: 1.5px solid var(--line); background: var(--box); }
+.mock-browser .mb-canvas { display: flex; gap: 10px; padding: 12px; }
+.rect { width: 90px; height: 54px; border: 2px solid var(--ink); flex: none; }
+.step-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; align-items: start; margin-top: 14px; }
+.code { background: var(--box2); min-height: 260px; }
+.code .bar { background: var(--line); opacity: .45; }
+.code .bar.hl { background: var(--pin); opacity: .55; }
+.side { display: flex; flex-direction: column; gap: 14px; }
+.layer { padding: 7px 10px; }
+.arrow { height: 18px; margin-left: 44px; border-left: 1.5px solid var(--line); font-size: 11px; color: var(--muted); padding-left: 10px; font-style: italic; }
+.notes { display: grid; grid-template-columns: 1.5fr 1fr .9fr; gap: 12px; margin-top: 18px; }
+.matrix { display: grid; grid-template-columns: 120px repeat(4, 1fr); gap: 6px; margin-top: 12px; }
+.matrix .h { font: 600 11px var(--mono); color: var(--muted); padding: 4px; }
+.matrix .c { height: 26px; border: 1.5px solid var(--line); border-radius: 4px; background: var(--box); }
+.matrix .c.n { background: transparent; border-style: dashed; }
+.takeaways { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+.repeat { margin: 4px 0 0; text-align: center; font: 600 12px var(--mono); color: var(--pin); }
+.foot { padding: 18px 0 22px; border-top: 1.5px solid var(--line); position: relative; }
+
+/* mobile frame */
+.mobile-wrap { display: grid; grid-template-columns: 340px 1fr; gap: 28px; align-items: start; }
+.mobile { width: 340px; }
+.mobile .in { padding: 0 12px; }
+.mobile .stepbar { padding: 8px 12px; overflow: hidden; }
+
+/* annotations */
+.notes-list { counter-reset: n; list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.notes-list li { position: relative; padding: 10px 12px 10px 44px; background: var(--paper); border: 1px solid var(--box2); border-radius: 8px; }
+.notes-list li::before { counter-increment: n; content: counter(n); position: absolute; left: 12px; top: 10px; width: 22px; height: 22px;
+  border-radius: 50%; background: var(--pin); color: #fff; font: 700 12px/22px var(--sans); text-align: center; }
+.notes-list b { display: block; }
+.notes-list.plain li { padding-left: 12px; }
+.notes-list.plain li::before { content: none; }
+.pin.inset { top: 6px; left: 6px; }
+code { font: 12px var(--mono); background: var(--box); padding: 0 4px; border-radius: 3px; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 14px; height: 14px; border: 1.5px solid var(--line); border-radius: 3px; background: var(--box); display: inline-block; }
+.legend i.d { background: transparent; border-style: dashed; }
+.legend i.k { background: var(--box2); }
+.legend i.p { background: var(--pin); border-color: var(--pin); border-radius: 50%; }
+
+@media (max-width: 1020px) {
+  .mobile-wrap { grid-template-columns: 1fr; }
+  .mobile { width: 100%; max-width: 340px; }
+  .desktop-frame { overflow-x: auto; }
+  .desktop-frame > .scroll { min-width: 980px; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Wireframe: tutorial page</h1>
+  <p class="sub">The low-fidelity layout of <code>docs/index.html</code>. That file is generated by <code>tutorial/build.py</code> from <code>tutorial/template.html</code>. Each numbered pin matches a note at the bottom, which says where that part is built.</p>
+
+  <div class="legend">
+    <span><i></i>Content block</span>
+    <span><i class="k"></i>Code / dark panel</span>
+    <span><i class="d"></i>Empty or "not used" slot</span>
+    <span><i class="p"></i>Note number</span>
+  </div>
+
+  <!-- ===================== DESKTOP ===================== -->
+  <h2 class="frame-title">Desktop · wider than 1020 px · content max 1280 px</h2>
+  <div class="frame desktop-frame">
+    <div class="scroll">
+    <div class="frame-bar"><i></i><i></i><i></i><span>docs/index.html</span></div>
+
+    <div class="stepbar" style="padding-left:38px">
+      <span class="pin inset">1</span>
+      <span class="t">Vue → NiceGUI</span>
+      <div class="row" style="gap:6px">
+        <span class="chip on">1 One empty rectangle</span>
+        <span class="chip">2 Two rectangles</span>
+        <span class="chip">3 NiceGUI</span>
+        <span class="chip">4 Mini NiceGUI</span>
+        <span class="chip">5 Vue + Quasar</span>
+        <span class="chip">6 Compare</span>
+      </div>
+      <span class="s" style="margin-left:auto">sticky · 56 px</span>
+    </div>
+
+    <div class="in">
+      <!-- intro -->
+      <div class="intro">
+        <span class="pin">2</span>
+        <div class="stack">
+          <div class="s">Kicker: versions line (mono)</div>
+          <div class="b"><div class="t">H1 · "Vue to NiceGUI, layer by layer"</div><div class="bar w70"></div></div>
+          <div><div class="bar w90"></div><div class="bar w90"></div><div class="bar w50"></div></div>
+          <div class="row">
+            <span class="chip">Your code</span>→<span class="chip">Server</span>→<span class="chip">Element tree</span>→<span class="chip">Renderer</span>→<span class="chip">Browser</span>
+          </div>
+          <div class="row s"><span>■ You write</span><span>■ Library</span><span>■ Browser result</span><span>▢ Not used</span></div>
+        </div>
+        <div class="stack" style="position:relative">
+          <span class="pin">3</span>
+          <div class="mock-browser">
+            <div class="mb-bar"></div>
+            <div class="mb-canvas"><div class="rect"></div><div class="rect"></div></div>
+          </div>
+          <div class="s">Caption: every step ends with this page</div>
+        </div>
+      </div>
+
+      <!-- one step section -->
+      <div class="sec">
+        <span class="pin">4</span>
+        <div class="row">
+          <div class="b dark" style="width:36px;height:36px;padding:0;display:grid;place-items:center"><span class="t">N</span></div>
+          <div><div class="t">H2 · step title</div><div class="s">stack · file name</div></div>
+        </div>
+        <div class="bar w70" style="margin-top:12px"></div>
+        <div class="s" style="margin-top:4px">Goal sentence</div>
+
+        <div class="step-grid">
+          <div class="stack" style="position:relative">
+            <span class="pin">5</span>
+            <div class="b dark code">
+              <div class="row" style="justify-content:space-between"><span class="t">file.py · Python · + new in this step</span><span class="chip">Copy</span></div>
+              <div class="bar w50"></div><div class="bar w70"></div><div class="bar hl w90"></div><div class="bar hl w70"></div>
+              <div class="bar hl w50"></div><div class="bar w30"></div><div class="bar w70"></div><div class="bar w90"></div>
+              <div class="bar w50"></div><div class="bar w70"></div><div class="bar w30"></div><div class="bar w50"></div>
+            </div>
+            <div class="b dark"><span class="t">Optional 2nd code block</span> <span class="s">(Step 3: captured JSON)</span><div class="bar w70"></div><div class="bar w50"></div></div>
+          </div>
+
+          <div class="side" style="position:relative">
+            <span class="pin">6</span>
+            <div class="s" style="padding-left:16px">What the browser shows · <b>sticky</b> at top 72 px</div>
+            <div class="mock-browser">
+              <div class="mb-bar"></div>
+              <div class="mb-canvas"><div class="rect"></div><div class="rect"></div></div>
+            </div>
+            <div class="s" style="position:relative">Layers, top to bottom · "Click a layer to light up its code"</div>
+            <div class="stack" style="gap:0;position:relative">
+              <span class="pin" style="left:-14px">7</span>
+              <div class="b layer"><span class="t">YOUR CODE</span> · Layer name <div class="s">sub text · lines 5–9</div></div>
+              <div class="arrow">arrow label</div>
+              <div class="b d layer"><span class="t">SERVER</span> · No server <div class="s">not used in this step</div></div>
+              <div class="arrow">…</div>
+              <div class="b layer"><span class="t">ELEMENT TREE</span> · Layer name</div>
+              <div class="arrow">tree handed to</div>
+              <div class="b layer"><span class="t">RENDERER</span> · Layer name</div>
+              <div class="arrow">creates real elements</div>
+              <div class="b layer"><span class="t">BROWSER</span> · Browser DOM</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="notes" style="position:relative">
+          <span class="pin">8</span>
+          <div class="b"><div class="t">What the code does</div><div class="bar w90"></div><div class="bar w70"></div><div class="bar w90"></div><div class="bar w50"></div></div>
+          <div class="b"><div class="t">Run it</div><div class="bar w70"></div><div class="b dark" style="margin-top:8px;height:34px;padding:4px"><span class="s">shell commands</span></div></div>
+          <div class="b"><div class="t">Try it</div><div class="bar w90"></div><div class="bar w50"></div></div>
+        </div>
+        <p class="repeat">↓ the same section repeats for Steps 1 to 5 ↓</p>
+      </div>
+
+      <!-- compare -->
+      <div class="sec">
+        <span class="pin">9</span>
+        <div class="row">
+          <div class="b dark" style="width:36px;height:36px;padding:0;display:grid;place-items:center"><span class="t">6</span></div>
+          <div><div class="t">H2 · Compare the roads</div><div class="s">All five steps, one table</div></div>
+        </div>
+        <div class="matrix">
+          <div></div><div class="h">Plain Vue<br>Steps 1–2</div><div class="h">NiceGUI<br>Step 3</div><div class="h">Hand-built<br>Step 4</div><div class="h">Vue + Quasar<br>Step 5</div>
+          <div class="h">YOUR CODE</div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
+          <div class="h">SERVER</div><div class="c n"></div><div class="c"></div><div class="c"></div><div class="c n"></div>
+          <div class="h">ELEMENT TREE</div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
+          <div class="h">RENDERER</div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
+          <div class="h">BROWSER</div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
+          <div class="h">4 fact rows</div><div class="bar w50"></div><div class="bar w70"></div><div class="bar w70"></div><div class="bar w50"></div>
+        </div>
+        <div class="takeaways" style="position:relative">
+          <span class="pin">10</span>
+          <div class="b"><div class="t">Every road has a tree</div><div class="bar w90"></div><div class="bar w70"></div></div>
+          <div class="b"><div class="t">NiceGUI is Vue + Quasar…</div><div class="bar w90"></div><div class="bar w70"></div></div>
+          <div class="b"><div class="t">Next step to try</div><div class="bar w90"></div><div class="bar w50"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot in">
+      <span class="pin" style="left:10px">11</span>
+      <div class="bar w90"></div><div class="bar w70"></div>
+      <div class="s" style="margin-top:6px">Footer · tested versions and version-pinning advice</div>
+    </div>
+    </div>
+  </div>
+
+  <!-- ===================== MOBILE ===================== -->
+  <h2 class="frame-title">Phone · 520 px and narrower (1020 px and narrower also stacks)</h2>
+  <div class="mobile-wrap">
+    <div class="frame mobile">
+      <div class="frame-bar"><i></i><i></i><i></i><span>375 px</span></div>
+      <div class="stepbar"><div class="row" style="gap:6px;flex-wrap:nowrap"><span class="chip on">1 One empty…</span><span class="chip">2 Two…</span><span class="chip">3 …</span></div></div>
+      <div class="in">
+        <div class="stack" style="padding:18px 0">
+          <div class="b"><div class="t">H1</div><div class="bar w70"></div></div>
+          <div><div class="bar w90"></div><div class="bar w70"></div></div>
+          <div class="row" style="gap:4px"><span class="chip">Your code</span><span class="chip">Server</span><span class="chip">Tree</span><span class="chip">…</span></div>
+          <div class="mock-browser"><div class="mb-bar"></div><div class="mb-canvas" style="overflow:hidden"><div class="rect"></div><div class="rect"></div></div></div>
+        </div>
+        <div class="sec stack">
+          <div class="t">N · H2 step title</div>
+          <div class="bar w90"></div>
+          <div class="b dark" style="min-height:120px"><span class="t">code (scrolls sideways)</span><div class="bar w70"></div><div class="bar w50"></div><div class="bar w90"></div></div>
+          <div class="mock-browser"><div class="mb-bar"></div><div class="mb-canvas" style="overflow:hidden"><div class="rect"></div><div class="rect"></div></div></div>
+          <div class="s">View is not sticky here</div>
+          <div class="stack" style="gap:0">
+            <div class="b layer"><span class="t">YOUR CODE</span><div>Layer name</div></div>
+            <div class="arrow" style="margin-left:18px">…</div>
+            <div class="b d layer"><span class="t">SERVER</span><div>No server</div></div>
+            <div class="arrow" style="margin-left:18px">…</div>
+            <div class="b layer"><span class="t">… 3 more</span></div>
+          </div>
+          <div class="b"><div class="t">What the code does</div><div class="bar w90"></div></div>
+          <div class="b"><div class="t">Run it</div><div class="bar w70"></div></div>
+          <div class="b"><div class="t">Try it</div><div class="bar w70"></div></div>
+        </div>
+        <div class="sec stack">
+          <div class="t">6 · Compare the roads</div>
+          <div class="b d" style="overflow:hidden"><span class="s">Table 820 px min → scrolls sideways</span>
+            <div class="matrix" style="grid-template-columns:70px repeat(4,90px)"><div class="h">ROW</div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div></div></div>
+          <div class="b"><div class="t">Takeaway 1</div></div>
+          <div class="b"><div class="t">Takeaway 2</div></div>
+          <div class="b"><div class="t">Takeaway 3</div></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <h2 class="frame-title" style="margin-top:0">What changes on small screens</h2>
+      <ul class="notes-list plain">
+        <li><b>Under 1020 px</b>The intro, the step grid, the notes and the takeaways all become one column. The browser view and the layer stack stop being sticky.</li>
+        <li><b>Under 520 px</b>The side gutter shrinks from 24 to 16 px and the "Vue → NiceGUI" brand is hidden. Each layer card puts the row name above the layer name, and the arrows move left.</li>
+        <li><b>Always scrolls sideways</b>The step bar chips, long code lines and the compare table (min 820 px wide) scroll inside their own box, so the page itself never scrolls sideways.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===================== NOTES ===================== -->
+  <h2 class="frame-title">Notes: where each part is built</h2>
+  <ol class="notes-list">
+    <li><b>Step bar</b>Sticky top bar with a brand and one chip per step. Chips come from <code>nav</code> in <code>build.py</code> and go into <code>&lt;!--NAV--&gt;</code>. An IntersectionObserver marks the chip of the section you are reading.</li>
+    <li><b>Intro, left</b>Kicker, H1, lead text, the "road" of five stops and the colour legend. This is static markup in <code>template.html</code>.</li>
+    <li><b>Intro, right: hero view</b>A fake browser with the two rectangles. <code>view_html()</code> fills <code>&lt;!--HERO_VIEW--&gt;</code>.</li>
+    <li><b>Step header</b>Number badge, H2 title, stack and file name, then the goal. Built by <code>step_html()</code> from <code>STEPS[n]</code>. All five sections go into <code>&lt;!--STEPS--&gt;</code>.</li>
+    <li><b>Code column (1.2 fr)</b>One or two code blocks from <code>render_code()</code>. The top bar has the file name, language, the "+ new in this step" key and a Copy button. Lines new since the last step get a green edge. Lines picked by a layer get a yellow highlight and the rest fade.</li>
+    <li><b>Side column (1 fr, sticky)</b>"What the browser shows" view, then the layer stack. It stays in view while the code scrolls past.</li>
+    <li><b>Layer stack</b>Five rows: Your code, Server, Element tree, Renderer, Browser. Built by <code>layer_html()</code> and <code>arrow_html()</code>. A layer with code refs is a button. Hover or focus previews its lines, and a click pins them. An unused layer is a dashed ghost box. The line ranges come from <code>find_range()</code> text markers.</li>
+    <li><b>Notes row (1.5 : 1 : 0.9)</b>"What the code does" (<code>new_points</code>), "Run it" (<code>run</code> plus optional <code>cmds</code>) and "Try it" (<code>tryit</code>, tinted green).</li>
+    <li><b>Compare section</b>Section 6. A matrix with a row-label column and four roads, coloured by layer role, plus four fact rows (the line counts come from <code>loc()</code>). Built by <code>compare_html()</code> into <code>&lt;!--COMPARE--&gt;</code>.</li>
+    <li><b>Takeaways</b>Three note cards. This is static markup in <code>template.html</code>.</li>
+    <li><b>Footer</b>The tested versions and advice on pinning a CDN version. Static.</li>
+  </ol>
+</div>
+</body>
+</html>
