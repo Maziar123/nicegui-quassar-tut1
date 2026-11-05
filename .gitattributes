@@ -1,0 +1,4 @@
+# LF everywhere: the bash `run` script needs it, and screenshot hashes (shots/result.json) are taken
+# from the exact bytes of the column files, so a CRLF checkout would mark every screenshot stale.
+* text=auto eol=lf
+*.png binary

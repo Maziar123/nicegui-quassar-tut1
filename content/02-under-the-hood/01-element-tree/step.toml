@@ -1,0 +1,58 @@
+# Step 2.1. Read by tutorial/build.py. Text fields are Markdown (inline). See AGENTS.md for the cross-comment rules.
+
+name = "The element tree"
+
+intro = [
+  "Build the page from step 1.2 again, but write it as a **tree**: nodes with a tag, some settings and children.",
+  "Vue never draws your HTML directly. It always works from such a tree, and here you write the tree yourself. A render function turns it into the page.",
+  "NiceGUI builds the same tree from your `with` blocks and sends it to the browser. The real data it sends is below the screenshot.",
+]
+picture_caption = "The page as a tree: each node is one element"
+try_it = "Add a third box: one more line in each tree (and one more `ui.element` in NiceGUI). The page grows to three boxes in all three columns."
+
+[columns.quasar]
+note = "The tree is plain JavaScript. `render` walks it: a tag that starts with `q-` becomes a Quasar component, any other tag a plain HTML element."
+open = "quasar.html"
+
+[columns.nicegui]
+note = "The same Python as step 1.2. Each `with` opens a node, and each element inside it becomes a child."
+run = "python nicegui_app.py"
+
+[columns.vue]
+note = "Plain Vue: the same idea without Quasar, so the page padding and the row are written as styles in the tree."
+open = "vue.html"
+
+[[cross]]
+idea = "Tree"
+say = "The page as nested nodes. Each node has a tag, its settings (props) and its children."
+quasar = { at = [["const tree =", "==      ] }"]], hint = "{ tag, props, children }" }
+nicegui = { at = [["with ui.row():", "# right"]], hint = "with blocks" }
+vue = { at = [["const tree =", "==      ] }"]], hint = "{ tag, props, children }" }
+
+[[cross]]
+idea = "Render"
+say = "Turn the tree into real page elements, one node at a time, with Vue's `h()` function."
+quasar = { at = [["function render", "==    }"]], hint = "h(tag, props, children)" }
+nicegui = { builtin = "NiceGUI's own Vue code in the browser does this with the tree it receives (the JSON below)." }
+vue = { at = [["const render ="]], hint = "h(tag, props, children)" }
+
+[[cross]]
+idea = "Quasar components"
+say = "A tag that starts with `q-` is a Quasar component, not an HTML tag."
+quasar = { at = [["resolveComponent(node.tag)"]], hint = "resolveComponent(tag)" }
+nicegui = { builtin = "Its tree is full of them: q-layout, q-page-container and q-page, every time." }
+vue = { builtin = "No Quasar here: only plain HTML tags like div." }
+
+[[cross]]
+idea = "Same page"
+say = "Two boxes in a row: the page from step 1.2, so the screenshot is the same too."
+quasar = { at = [["// left"], ["// right"]], hint = "{ tag: 'div', … }" }
+nicegui = { at = [["# left"], ["# right"]], hint = "ui.element('div')" }
+vue = { at = [["// left"], ["// right"]], hint = "{ tag: 'div', … }" }
+
+[[cross]]
+idea = "Start"
+say = "Hand the render function to Vue, or start NiceGUI."
+quasar = { at = [["createApp({ render", "app.mount"]], hint = "createApp({ render })" }
+nicegui = { at = [["ui.run("]], hint = "ui.run(root)" }
+vue = { at = [["createApp({ render"]], hint = "createApp({ render })" }

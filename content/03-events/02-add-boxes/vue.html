@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>3.2 Add a box on each click (Vue 3)</title>
+  <style>
+    body { margin: 0; }
+    .page { padding: 16px; }
+    .row { display: flex; flex-wrap: wrap; gap: 16px; }
+    .box {
+      width: 200px;
+      height: 120px;
+      border: 2px solid #333;
+      box-sizing: border-box;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="page">
+      <div class="row">
+        <div v-for="n in count" :key="n" class="box" @click="count++"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createApp, ref } from 'https://cdn.jsdelivr.net/npm/vue@3/dist/vue.esm-browser.prod.js'
+
+    createApp({ setup: () => ({ count: ref(1) }) }).mount('#app')
+  </script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>2.1 The element tree (Quasar)</title>
+  <link href="https://cdn.jsdelivr.net/npm/quasar@2/dist/quasar.prod.css" rel="stylesheet">
+</head>
+<body>
+  <div id="q-app"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/quasar@2/dist/quasar.umd.prod.js"></script>
+  <script>
+    const { createApp, h, resolveComponent } = Vue
+    const BOX = { width: '200px', height: '120px', border: '2px solid #333' }
+
+    // the page as a tree: a tag, its props, its children
+    const tree =
+      { tag: 'q-layout', props: { view: 'hhh lpr fff' }, children: [
+        { tag: 'q-page-container', children: [
+          { tag: 'q-page', props: { class: 'q-pa-md' }, children: [
+            { tag: 'div', props: { class: 'row', style: { gap: '16px' } }, children: [
+              { tag: 'div', props: { style: BOX } },  // left
+              { tag: 'div', props: { style: BOX } },  // right
+            ] },
+          ] },
+        ] },
+      ] }
+
+    function render(node) {
+      const kids = (node.children || []).map(render)
+      if (node.tag.startsWith('q-'))
+        return h(resolveComponent(node.tag), node.props, { default: () => kids })  // a Quasar component
+      return h(node.tag, node.props, kids)                                       // a plain HTML tag
+    }
+
+    const app = createApp({ render: () => render(tree) })
+    app.use(Quasar)
+    app.mount('#q-app')
+  </script>
+</body>
+</html>

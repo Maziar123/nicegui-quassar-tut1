@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>2.2 The browser half of NiceGUI (Quasar)</title>
+  <link href="https://cdn.jsdelivr.net/npm/quasar@2/dist/quasar.prod.css" rel="stylesheet">
+</head>
+<body>
+  <div id="q-app"></div>
+
+  <!-- the tree in NiceGUI's own format (flat, numbered), as a server would put it in the page -->
+  <script type="application/json" id="elements">
+  {
+    "0": {"tag": "q-layout", "props": {"view": "hhh lpr fff"}, "children": [1]},
+    "1": {"tag": "q-page-container", "children": [2]},
+    "2": {"tag": "q-page", "class": ["q-pa-md"], "children": [3]},
+    "3": {"tag": "div", "class": ["row"], "style": {"gap": "16px"}, "children": [4, 5]},
+    "4": {"tag": "div", "style": {"width": "200px", "height": "120px", "border": "2px solid #333"}},
+    "5": {"tag": "div", "style": {"width": "200px", "height": "120px", "border": "2px solid #333"}}
+  }
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/quasar@2/dist/quasar.umd.prod.js"></script>
+  <script>
+    const { createApp, h, resolveComponent } = Vue
+    const elements = JSON.parse(document.getElementById('elements').textContent)
+
+    function render(id) {
+      const e = elements[id]
+      const kids = (e.children || []).map(render)
+      const props = { ...e.props, class: e.class, style: e.style }
+      if (e.tag.startsWith('q-'))
+        return h(resolveComponent(e.tag), props, { default: () => kids })  // a Quasar component
+      return h(e.tag, props, kids)                                       // a plain HTML tag
+    }
+
+    const app = createApp({ render: () => render(0) })
+    app.use(Quasar)
+    app.mount('#q-app')
+  </script>
+</body>
+</html>

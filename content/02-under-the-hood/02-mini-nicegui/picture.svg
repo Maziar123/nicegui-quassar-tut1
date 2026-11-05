@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200" role="img" aria-label="The road from Python to the screen: Python builds a tree, a server sends it as JSON, and Vue in the browser draws the page.">
+  <g font-size="13" fill="currentColor" text-anchor="middle">
+    <rect x="10" y="20" width="110" height="56" rx="8" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <text x="65" y="44" font-weight="600">Python</text>
+    <text x="65" y="62" font-size="11.5">builds the tree</text>
+    <rect x="145" y="20" width="110" height="56" rx="8" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <text x="200" y="44" font-weight="600">Server</text>
+    <text x="200" y="62" font-size="11.5">sends JSON</text>
+    <rect x="280" y="20" width="110" height="56" rx="8" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <text x="335" y="44" font-weight="600">Browser</text>
+    <text x="335" y="62" font-size="11.5">Vue draws it</text>
+  </g>
+  <path d="M120 48 H139 M134 43 L140 48 L134 53 M255 48 H274 M269 43 L275 48 L269 53" fill="none" stroke="currentColor" stroke-width="1.6"/>
+  <!-- the drawn page -->
+  <rect x="280" y="100" width="110" height="80" rx="4" fill="none" stroke="currentColor" stroke-opacity=".5"/>
+  <rect x="292" y="118" width="40" height="26" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="340" y="118" width="40" height="26" fill="none" stroke="currentColor" stroke-width="2"/>
+  <path d="M335 76 V96" stroke="currentColor" stroke-width="1.6" stroke-dasharray="3 3"/>
+  <text x="140" y="140" font-size="12" fill="currentColor" fill-opacity=".8" text-anchor="middle">Quasar column: only this half</text>
+  <path d="M232 136 H272" stroke="currentColor" stroke-width="1.2"/>
+</svg>

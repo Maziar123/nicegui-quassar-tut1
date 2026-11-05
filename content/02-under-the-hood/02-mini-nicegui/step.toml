@@ -1,0 +1,65 @@
+# Step 2.2. Read by tutorial/build.py. Text fields are Markdown (inline). See AGENTS.md for the cross-comment rules.
+
+name = "Build a mini NiceGUI"
+
+intro = [
+  "NiceGUI has two halves: Python on a server builds the element tree, and Vue with Quasar draws it in the browser. Build both halves by hand.",
+  "The Vue 3 column is a mini NiceGUI in one Python file: a tree made with `with` blocks, a FastAPI server, and Vue to draw it. The Quasar column is the browser half on its own: it draws a tree written in NiceGUI's own format.",
+  "Read cross-comments 1 to 6 in order: they follow the road from your Python to the screen.",
+]
+picture_caption = "The road: Python builds the tree, the server sends it, Vue draws it"
+try_it = "In the Vue 3 column, change `BOX` to make the boxes 100 px tall, restart the server and reload. Python changed the page, the same way NiceGUI does."
+
+[columns.quasar]
+note = "Only the browser half: the tree sits in the page as JSON in NiceGUI's flat, numbered format, and `render` draws it with Vue and Quasar."
+open = "quasar.html"
+
+[columns.nicegui]
+note = "The real thing: the same page as step 1.2. Both halves, and the road between them, come with NiceGUI."
+run = "python nicegui_app.py"
+
+[columns.vue]
+note = "A mini NiceGUI: Python builds the tree, FastAPI sends it inside the page, and plain Vue draws it. About 70 lines."
+run = "python vue_server.py"
+
+[[cross]]
+idea = "Build the tree"
+say = "Python makes the tree. Elements made inside a `with` block become its children."
+quasar = { builtin = "Not here: this column gets the tree already built, as JSON." }
+nicegui = { at = [["with ui.row():", "# right"]], hint = "with ui.row(): …" }
+vue = { at = [["def build", "return page"]], hint = "with Element(…): …" }
+
+[[cross]]
+idea = "with blocks"
+say = "How `with` works: entering a block makes that element the parent, leaving it ends that."
+quasar = { builtin = "Not needed: the tree is written out as data." }
+nicegui = { builtin = "Every NiceGUI element does this, with its own stack of open `with` blocks." }
+vue = { at = [["def __enter__", "Element.stack.pop()"]], hint = "__enter__ / __exit__" }
+
+[[cross]]
+idea = "Tree as JSON"
+say = "The tree becomes text the browser can read: JSON."
+quasar = { at = [['"0": {"tag": "q-layout"', '"5": {"tag"']], hint = "flat and numbered, like NiceGUI" }
+nicegui = { builtin = "The JSON shown in step 2.1: flat and numbered, children by number." }
+vue = { at = [["def to_dict", "return {'tag'"]], hint = "to_dict(): nested" }
+
+[[cross]]
+idea = "Send the page"
+say = "A server answers the browser with the page, with the tree inside it."
+quasar = { builtin = "No server: the tree is already in the file. Open it from disk." }
+nicegui = { builtin = "NiceGUI runs a FastAPI server for you, and keeps a websocket open for later changes (section 3)." }
+vue = { at = [["@app.get('/'", "return PAGE.replace"]], hint = "@app.get('/')" }
+
+[[cross]]
+idea = "Draw it"
+say = "In the browser, a render function turns each node into a page element with Vue's `h()`."
+quasar = { at = [["function render(id)", "==    }"]], hint = "render(id) with Quasar" }
+nicegui = { builtin = "NiceGUI's nicegui.js does this, with Vue and Quasar, like the Quasar column." }
+vue = { at = [["const render ="]], hint = "render(node) with plain Vue" }
+
+[[cross]]
+idea = "Start"
+say = "Start the server, or just open the file."
+quasar = { builtin = "Nothing to start: open quasar.html in a browser." }
+nicegui = { at = [["ui.run("]], hint = "ui.run(root)" }
+vue = { at = [["uvicorn.run("]], hint = "uvicorn.run(app)" }

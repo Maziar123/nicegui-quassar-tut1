@@ -1,0 +1,34 @@
+# Git hooks, run by prek (a fast, pre-commit compatible runner). Install once: just setup
+# (or: uv run prek install). Run all by hand: uv run prek run --all-files
+# Every hook uses the tools pinned in uv.lock, so hooks and CI check the same thing.
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: uv run ruff check --fix --force-exclude   # --force-exclude: respect pyproject excludes for named files
+        language: system
+        types: [python]
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format --force-exclude
+        language: system
+        types: [python]
+      - id: requirements
+        name: requirements.txt matches uv.lock
+        entry: uv run just check-reqs
+        language: system
+        files: ^(pyproject\.toml|uv\.lock|requirements\.txt)$
+        pass_filenames: false
+      - id: tests
+        name: fast tests
+        entry: uv run pytest -m "not browser"
+        language: system
+        files: ^(tutorial/|content/|tests/|pyproject\.toml$|uv\.lock$)
+        pass_filenames: false
+      - id: docs
+        name: docs/ is up to date
+        entry: uv run python tutorial/build.py --check
+        language: system
+        files: ^(tutorial/|content/|docs/|pyproject\.toml$|uv\.lock$)
+        pass_filenames: false

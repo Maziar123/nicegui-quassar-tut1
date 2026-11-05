@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 210" role="img" aria-label="A row, drawn as a dashed outline, holds two boxes side by side. Each box is 200 by 120 px. The space between them is 16 px.">
+  <!-- the row: a dashed outline around both boxes -->
+  <rect x="14" y="44" width="372" height="120" rx="6" fill="none" stroke="currentColor" stroke-opacity=".45" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="20" y="38" font-size="12" fill="currentColor" fill-opacity=".75">row (display: flex)</text>
+  <!-- two boxes, 200 x 120 scaled to 0.82; gap 16 scaled to 13 -->
+  <rect x="24" y="54" width="164" height="98.4" fill="none" stroke="currentColor" stroke-width="2.4"/>
+  <rect x="201" y="54" width="164" height="98.4" fill="none" stroke="currentColor" stroke-width="2.4"/>
+  <text x="106" y="108" font-size="12" fill="currentColor" fill-opacity=".7" text-anchor="middle">left</text>
+  <text x="283" y="108" font-size="12" fill="currentColor" fill-opacity=".7" text-anchor="middle">right</text>
+  <!-- gap -->
+  <path d="M188 176 V160 M201 176 V160 M180 182 H209" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  <text x="194.5" y="200" font-size="13" font-weight="600" fill="currentColor" text-anchor="middle">gap 16 px</text>
+  <!-- box width -->
+  <path d="M24 22 H188 M24 17 V27 M188 17 V27" fill="none" stroke="currentColor" stroke-width="1.2"/>
+  <text x="106" y="14" font-size="12" font-weight="600" fill="currentColor" text-anchor="middle">200 px</text>
+</svg>

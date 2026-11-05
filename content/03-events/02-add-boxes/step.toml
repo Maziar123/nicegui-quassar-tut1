@@ -1,0 +1,54 @@
+# Step 3.2. Read by tutorial/build.py. Text fields are Markdown (inline). See AGENTS.md for the cross-comment rules.
+
+name = "Add a box on each click"
+
+intro = [
+  "Start with one box. Every click on any box adds one more to the row.",
+  "Here the two ways of thinking split. Quasar and Vue keep a **number** and draw that many boxes. NiceGUI **adds an element**: Python makes one new box inside the row.",
+  "Both end with the same page, as the screenshot after one click shows.",
+]
+picture_caption = "Each click adds a box to the row"
+try_it = "Keep clicking until the row is wider than the window. Then the next box wraps to a new line, in all three columns (step 1.2)."
+
+[shoot]
+clicks = [[116, 76]]  # the middle of the first box: after one click there are two
+
+[columns.quasar]
+note = "`count` remembers how many boxes there are. `v-for` draws one box per count, and a click adds one to `count`."
+open = "quasar.html"
+
+[columns.nicegui]
+note = "No counter. `add()` makes one new box inside the row (`with row:`) and gives it the same click handler."
+run = "python nicegui_app.py"
+
+[columns.vue]
+note = "The same as Quasar: a `count`, `v-for` to draw the boxes, and `count++` on a click."
+open = "vue.html"
+
+[[cross]]
+idea = "How many"
+say = "The page must know how many boxes to show. It starts with one."
+quasar = { at = [["const count = ref(1)"]], hint = "ref(1)" }
+nicegui = { builtin = "No number: the row's children are the boxes. The first comes from add()." }
+vue = { at = [["count: ref(1)"]], hint = "ref(1)" }
+
+[[cross]]
+idea = "Make the boxes"
+say = "One box for each count, or one new box per call."
+quasar = { at = [['v-for="n in count"']], hint = 'v-for="n in count"' }
+nicegui = { at = [["def add():", ".on('click', add)"]], hint = "def add(): with row: …" }
+vue = { at = [['v-for="n in count"']], hint = 'v-for="n in count"' }
+
+[[cross]]
+idea = "Click adds one"
+say = "A click on any box adds a box."
+quasar = { at = [['@click="count++"']], hint = '@click="count++"' }
+nicegui = { at = [[".on('click', add)"], ["==    add()  # the first box"]], hint = ".on('click', add)" }
+vue = { at = [['@click="count++"']], hint = '@click="count++"' }
+
+[[cross]]
+idea = "Draw or add"
+say = "What changes the page: the whole list drawn again, or one element added."
+quasar = { builtin = "Vue draws the list again from count. It compares old and new and adds just the new box." }
+nicegui = { builtin = "Python creates one element in the row, and NiceGUI sends just that element to the browser." }
+vue = { builtin = "Like Quasar: draw from count, and Vue adds the new box." }

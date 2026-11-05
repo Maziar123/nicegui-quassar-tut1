@@ -1,0 +1,13 @@
+{#- Left rail: summary, then every section with its ready and planned steps. -#}
+<nav class="rail" aria-label="{{ t.nav_label }}">
+  <a href="{{ href('summary') }}" data-target="summary">{{ t.summary }}</a>
+  {%- for sec in sections %}
+  <a class="sec" href="{{ href(sec.id) }}" data-target="{{ sec.id }}"><span class="secnum">{{ sec.n }}</span>{{ sec.name }}</a>
+    {%- for st in sec.steps %}
+  <a class="st" href="{{ href(st.id) }}" data-target="{{ st.id }}"><span>{{ st.num }}</span>{{ st.name }}</a>
+    {%- endfor %}
+    {%- for p in sec.planned %}
+  <span class="st planned"><span>{{ p.num }}</span>{{ p.name }}</span>
+    {%- endfor %}
+  {%- endfor %}
+</nav>

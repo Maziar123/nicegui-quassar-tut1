@@ -1,0 +1,43 @@
+{#- Page skeleton for every page. Child templates fill: title, description, body_class, main.
+    alternates: the same page in every language (empty for a one-language site). -#}
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ t.dir }}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ site.title }}: {{ site.subtitle }}{% endblock %}</title>
+<meta name="description" content="{% block description %}{{ site.lead[0] | striptags }}{% endblock %}">
+{%- for a in alternates %}
+<link rel="alternate" hreflang="{{ a.lang }}" href="{{ a.href }}">
+{%- endfor %}
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='2' y='4' width='8' height='24' rx='2' fill='%232f6fd6'/%3E%3Crect x='12' y='4' width='8' height='24' rx='2' fill='%231f8a5b'/%3E%3Crect x='22' y='4' width='8' height='24' rx='2' fill='%237a55c7'/%3E%3C/svg%3E">
+<script>
+  // Apply the saved theme and text size before the first paint (site.js handles the buttons).
+  (function () {
+    try {
+      var t = localStorage.getItem('xref-theme');
+      if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+      var z = Number(localStorage.getItem('xref-zoom'));
+      if (z >= 0.8 && z <= 1.6) document.documentElement.style.setProperty('--z', z);
+    } catch (e) {}
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ assets }}site.css">
+</head>
+<body class="{% block body_class %}{% endblock %}" data-page="{{ page_id }}">
+<a class="skip" href="#main">{{ t.skip }}</a>
+{% include "partials/topbar.html" %}
+<div class="shell">
+  {% include "partials/rail.html" %}
+  <main class="content" id="main" tabindex="-1">
+{% block main %}{% endblock %}
+{% include "partials/footer.html" %}
+  </main>
+</div>
+<script id="page-data" type="application/json">{{ page_data | tojson }}</script>
+<script src="{{ assets }}site.js"></script>
+</body>
+</html>

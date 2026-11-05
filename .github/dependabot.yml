@@ -1,0 +1,10 @@
+# Monthly pull requests for new versions of the GitHub Actions.
+# Python packages are updated by hand with `./run upgrade` (see AGENTS.md): a new NiceGUI or Pygments
+# can change the rendered pages, so requirements.txt, the screenshots and docs/ must be redone and
+# looked at, which a bot pull request cannot do.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

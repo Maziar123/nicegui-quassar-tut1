@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 220" role="img" aria-label="One box with a dark square in its top-left corner. The space between the border and the square is the padding, 16 px on every side.">
+  <!-- the box: 200 x 120 scaled to 1.5 -->
+  <rect x="50" y="30" width="300" height="180" fill="none" stroke="currentColor" stroke-width="3"/>
+  <!-- the padding area, shaded -->
+  <path d="M51.5 31.5 H348.5 V208.5 H51.5 Z M75.5 55.5 V184.5 H324.5 V55.5 Z" fill="currentColor" fill-opacity=".12" fill-rule="evenodd"/>
+  <rect x="75.5" y="55.5" width="249" height="129" fill="none" stroke="currentColor" stroke-opacity=".45" stroke-dasharray="5 4"/>
+  <!-- the square: 40 x 40 scaled -->
+  <rect x="75.5" y="55.5" width="60" height="60" fill="currentColor"/>
+  <!-- padding labels -->
+  <path d="M51.5 44 H75.5 M51.5 39 V49 M75.5 39 V49" stroke="currentColor" stroke-width="1.3"/>
+  <text x="63.5" y="24" font-size="12" font-weight="600" fill="currentColor" text-anchor="middle">16</text>
+  <text x="200" y="150" font-size="14" font-weight="600" fill="currentColor" text-anchor="middle">padding: 16 px</text>
+  <text x="200" y="168" font-size="12" fill="currentColor" fill-opacity=".75" text-anchor="middle">(the shaded frame)</text>
+</svg>

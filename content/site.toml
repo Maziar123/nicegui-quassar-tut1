@@ -1,0 +1,56 @@
+# Site text and the columns. Read by tutorial/build.py.
+
+# Languages to build. The first is the default and goes to docs/; others go to docs/<code>/.
+# Each needs tutorial/i18n/<code>.toml. Content translations are optional *.<code>.toml files.
+languages = ["en"]
+
+title = "Quasar & NiceGUI & Vue 3"
+subtitle = "Side-by-side cross-reference and tutorial"
+lead = [
+  "Every step builds the same small page three times: with Quasar, with NiceGUI and with plain Vue 3.",
+  "Read across a step to see how one idea is written in each. Numbered cross-comments link the matching lines, and a screenshot proves the three pages look the same.",
+]
+
+how_to_read = [
+  "Pick a step in the list on the left. Each step starts with a short intro and one picture.",
+  "Below that, the three columns sit side by side: a short note, then the code.",
+  "Click a cross-comment, or press <kbd>C</kbd>, to light up the matching lines in every column.",
+  "Press <kbd>1</kbd>, <kbd>2</kbd> or <kbd>3</kbd> to hide or show a column. Two columns give the code more room.",
+]
+
+setup = """python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt"""
+setup_note = "Quasar and Vue columns need only a browser. The NiceGUI column needs Python. On Arch Linux, use a virtual environment: the system pip is blocked by PEP 668."
+
+# Browser libraries the site itself loads, pinned to an exact version (an update must not change the page).
+# Mermaid draws ```mermaid blocks. 12.2.0 was released 2026-10-13.
+[libs]
+mermaid = "https://cdn.jsdelivr.net/npm/mermaid@12.2.0/dist/mermaid.esm.min.mjs"
+
+# One line from each column for the picture at the top: the same box, three ways.
+[hero]
+quasar = '<div style="width: 200px; …">'
+nicegui = "ui.element('div').style(BOX)"
+vue = '<div class="box"></div>'
+
+[[column]]
+id = "quasar"
+name = "Quasar"
+what = "A UI library for Vue 3. You write HTML with Quasar components."
+lang = "HTML + JS"
+needs = "A browser"
+
+[[column]]
+id = "nicegui"
+name = "NiceGUI"
+what = "Python on top of Vue 3 and Quasar. You write Python only."
+lang = "Python"
+needs = "Python + nicegui"
+
+[[column]]
+id = "vue"
+name = "Vue 3"
+what = "Plain Vue with no UI library. You write the HTML and CSS."
+lang = "HTML + CSS + JS"
+needs = "A browser"

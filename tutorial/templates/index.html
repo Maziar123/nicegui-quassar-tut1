@@ -1,0 +1,17 @@
+{#- The main page: summary, then every section with its steps embedded. -#}
+{% extends "base.html" %}
+{% block main %}
+{% include "partials/summary.html" %}
+{%- for sec in sections %}
+<section class="section" id="{{ sec.id }}" aria-labelledby="{{ sec.id }}-title">
+  <header class="sec-head"><span class="kicker">{{ t.section }} {{ sec.n }}</span><h2 id="{{ sec.id }}-title">{{ sec.name }}</h2><p>{{ sec.about }}</p></header>
+  {%- for st in sec.steps %}
+  {{ step_html[st.id] }}
+  {%- endfor %}
+  {%- if sec.planned %}
+  <div class="card dashed coming"><h3 class="card-title">{{ t.coming_next }}</h3>
+    <ul>{% for p in sec.planned %}<li><span>{{ p.num }}</span>{{ p.name }}</li>{% endfor %}</ul></div>
+  {%- endif %}
+</section>
+{%- endfor %}
+{% endblock %}

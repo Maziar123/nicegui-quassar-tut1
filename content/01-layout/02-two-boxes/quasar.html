@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>1.2 Two boxes side by side (Quasar)</title>
+  <link href="https://cdn.jsdelivr.net/npm/quasar@2/dist/quasar.prod.css" rel="stylesheet">
+</head>
+<body>
+  <div id="q-app">
+    <q-layout view="hhh lpr fff">
+      <q-page-container>
+        <q-page class="q-pa-md">
+          <div class="row" style="gap: 16px">
+            <div style="width: 200px; height: 120px; border: 2px solid #333"></div>  <!-- left -->
+            <div style="width: 200px; height: 120px; border: 2px solid #333"></div>  <!-- right -->
+          </div>
+        </q-page>
+      </q-page-container>
+    </q-layout>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/quasar@2/dist/quasar.umd.prod.js"></script>
+  <script>
+    const app = Vue.createApp({})
+    app.use(Quasar)
+    app.mount('#q-app')
+  </script>
+</body>
+</html>

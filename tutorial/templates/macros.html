@@ -1,0 +1,127 @@
+{#- Reusable blocks. Import with:  {% import "macros.html" as m with context %}
+    Objects come from tutorial/model.py (Step, Column, Cross, Ref, Code, Shots).
+    `md.inline(text)` / `md.block(text)` render Markdown (tutorial/mdrender.py). -#}
+
+{#- A pill in a column's colour. -#}
+{% macro chip(col, text) -%}
+<span class="chip c-{{ col }}">{{ text }}</span>
+{%- endmacro %}
+
+{#- A fake browser window around any content:  {% call m.browser("label") %}...{% endcall %} -#}
+{% macro browser(label) -%}
+<div class="browser"><div class="bbar" aria-hidden="true"><i></i><i></i><i></i><span>{{ label }}</span></div>{{ caller() }}</div>
+{%- endmacro %}
+
+{#- A titled card:  {% call m.card("Title", "try") %}<p>...</p>{% endcall %}   kinds: try, aside, dashed -#}
+{% macro card(title, kind="", level=none) -%}{% set lv = level or H.sub %}
+<div class="card {{ kind }}">{% if title %}<h{{ lv }} class="card-title">{{ title }}</h{{ lv }}>{% endif %}{{ caller() }}</div>
+{%- endmacro %}
+
+{#- Highlighted code with line numbers and cross-comment numbers. Always left to right. -#}
+{% macro code_block(cid, code) -%}
+<pre class="code" dir="ltr" data-code="{{ cid }}"><code>
+{%- for row in code.rows -%}
+<span class="ln" data-n="{{ loop.index }}"><span class="no">{{ loop.index }}</span><span class="tx">{{ row | safe }}</span><span class="mks">
+{%- for n in code.marks.get(loop.index, []) %}<i>{{ n }}</i>{% endfor -%}
+</span></span>
+{%- endfor -%}
+</code></pre>
+{%- endmacro %}
+
+{#- One column of a step: header, note, code. -#}
+{% macro column(step, c) -%}
+<div class="col" data-col="{{ c.id }}">
+  {%- if c.id in step.code %}{% set code = step.code[c.id] %}
+  <div class="colhead"><b>{{ c.name }}</b>
+    <span class="meta">{{ code.file }} · {{ code.lang }} · {{ code.nlines }} {{ t.lines }}</span>
+    <button class="copy" type="button" data-copy="{{ c.id }}">{{ t.copy_code }}</button></div>
+  <p class="colnote">{{ md.inline(step.note(c.id).note) }}</p>
+  {{ code_block(c.id, code) }}
+  {%- else %}
+  <div class="colhead"><b>{{ c.name }}</b></div>
+  <div class="missing">{{ t.not_in.format(name=c.name) }}</div>
+  {%- endif %}
+</div>
+{%- endmacro %}
+
+{#- The shared screenshot, or one per column when they differ. -#}
+{% macro shots(step) -%}
+{%- set s = step.shots %}
+{%- if not s %}
+<div class="shared card"><div><h{{ H.sub }} class="block-title">{{ t.shared_shot }}</h{{ H.sub }}><p>{{ t.shot_none }}</p></div></div>
+{%- else %}
+<div class="shared card{{ '' if s.same else ' differ' }}">
+  <div>
+    <h{{ H.sub }} class="block-title">{{ t.shared_shot }}</h{{ H.sub }}>
+    <p>{{ t.shot_same.format(n=s.files | length) if s.same else t.shot_differ }}</p>
+    <div class="chips">
+    {%- for c in cols if c.id in s.files %}{% set d = s.diff.get(c.id, 0) %}
+      {{ chip(c.id, c.name ~ ' ✓' if d == 0 else c.name ~ ' · ' ~ (t.size_differs if d < 0 else t.px_differ.format(n=d))) }}
+    {%- endfor %}
+    </div>
+    {%- if s.stale %}
+    <p class="stale" role="status">⚠ {{ t.shot_stale.format(names=site.names(s.stale)) }}</p>
+    {%- endif %}
+    <p class="small">{{ t.shot_meta.format(w=s.w, h=s.h, scale=s.scale, date=s.date) }}
+      {%- if s.clicks %} {{ t.shot_clicks.format(n=s.clicks | length) }}{% endif %}</p>
+  </div>
+  <div class="{{ 'shot-one' if s.same else 'shots-each' }}">
+    {%- for cid, url in s.urls.items() %}{% set name = site.column(cid).name %}
+    {% call browser(name) %}<img src="{{ assets }}{{ url }}" width="{{ s.w }}" height="{{ s.h }}" alt="{{ t.shot_alt.format(name=name) }}">{% endcall %}
+    {%- endfor %}
+  </div>
+</div>
+{%- endif %}
+{%- endmacro %}
+
+{#- One cross-comment reference cell. -#}
+{% macro ref(cid, r) -%}
+{%- if r is none %}<span class="ref none" data-col="{{ cid }}">–</span>
+{%- elif r.builtin %}<span class="ref built" data-col="{{ cid }}"><b>{{ t.built_in }}</b> {{ r.builtin }}</span>
+{%- else %}<span class="ref" data-col="{{ cid }}"><b>{{ r.label }}</b> <code>{{ r.hint }}</code></span>
+{%- endif %}
+{%- endmacro %}
+
+{#- The cross-comment list of a step. -#}
+{% macro cross(step) -%}
+<div class="xc">
+  <h{{ H.sub }} class="block-title">{{ t.cross }} <span class="hint">{{ t.cross_hint }}</span></h{{ H.sub }}>
+  <div class="xhead" aria-hidden="true"><span></span><span>{{ t.what_matches }}</span>{% for c in cols %}<span data-col="{{ c.id }}">{{ c.name }}</span>{% endfor %}</div>
+  {%- for x in step.cross %}
+  <button type="button" class="xrow" id="{{ step.id }}-x{{ x.n }}" data-n="{{ x.n }}" aria-pressed="false" data-refs="{{ x.ranges | tojson | forceescape }}">
+    <span class="mk">{{ x.n }}</span><span class="say"><b>{{ x.idea }}.</b> {{ md.inline(x.say) }}</span>
+    {%- for c in cols %}{{ ref(c.id, x.refs.get(c.id)) }}{% endfor %}
+  </button>
+  {%- endfor %}
+</div>
+{%- endmacro %}
+
+{#- A Markdown code fence. Called from tutorial/mdrender.py, so it may only use `t`.
+    kind: "code" (highlighted), "mermaid" (code + diagram), "html" (code + sandboxed preview, no scripts). -#}
+{% macro fence(kind, lang, label, rows, raw, marked, title, height) -%}
+<figure class="{{ 'mdcode' if kind == 'code' else 'cpv' }}"{% if kind != 'code' %} data-kind="{{ kind }}" data-view="both"{% endif %}>
+  <div class="mdbar">
+    <span class="lang">{{ label }}</span>
+    {%- if title %}<span class="ftitle">{{ title }}</span>{% endif %}
+    {%- if kind != 'code' %}
+    <span class="cpv-views" role="group" aria-label="{{ t.cp_view }}">
+      {%- for v in ('both', 'code', 'preview') %}<button type="button" data-view="{{ v }}" aria-pressed="{{ 'true' if v == 'both' else 'false' }}">{{ t | attr('cp_' ~ v) }}</button>{% endfor -%}
+    </span>
+    {%- endif %}
+    <button class="copy" type="button" data-copy-src>{{ t.copy_code }}</button>
+  </div>
+  <div class="cpv-body">
+    <pre class="code" dir="ltr"><code>
+    {%- for row in rows -%}
+    <span class="ln{{ ' mark' if loop.index in marked }}" data-n="{{ loop.index }}"><span class="no">{{ loop.index }}</span><span class="tx">{{ row | safe }}</span><span class="mks"></span></span>
+    {%- endfor -%}
+    </code></pre>
+    {%- if kind == 'mermaid' %}
+    <div class="cpv-preview"><div class="mermaid-out" role="img" aria-label="{{ title or t.diagram }}"><p class="small">{{ t.diagram_loading }}</p></div></div>
+    {%- elif kind == 'html' %}
+    <div class="cpv-preview"><iframe sandbox="" srcdoc="{{ raw }}" height="{{ height }}" title="{{ title or t.cp_preview }}" loading="lazy"></iframe></div>
+    {%- endif %}
+  </div>
+  <script type="application/json" class="src">{{ raw | tojson }}</script>
+</figure>
+{%- endmacro %}

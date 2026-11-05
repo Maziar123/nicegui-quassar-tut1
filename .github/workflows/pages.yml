@@ -1,0 +1,39 @@
+# Publish docs/ to GitHub Pages on every push to main.
+# One-time setting: Settings -> Pages -> Build and deployment -> Source: GitHub Actions.
+# It publishes exactly the committed docs/, and only when docs/ matches the source (build --check).
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: true
+      - name: Check that docs/ matches the source
+        run: uv run --locked --no-dev python tutorial/build.py --check
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: docs
+      - id: deployment
+        uses: actions/deploy-pages@v5
