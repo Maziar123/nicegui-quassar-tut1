@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TV Layout Wireframe</title>
+<style>
+:root {
+  --bg: #f4f4f2; --paper: #ffffff; --ink: #222; --muted: #6b6b6b;
+  --box: #e6e6e3; --box2: #d2d2ce; --line: #9a9a95; --pin: #d9480f; --hl: #f0b444;
+  --mono: ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161616; --paper: #1f1f1f; --ink: #e6e6e6; --muted: #a0a0a0;
+    --box: #2c2c2c; --box2: #3a3a3a; --line: #6a6a6a; --pin: #ff8a50; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #161616; --paper: #1f1f1f; --ink: #e6e6e6; --muted: #a0a0a0;
+  --box: #2c2c2c; --box2: #3a3a3a; --line: #6a6a6a; --pin: #ff8a50; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(--sans); }
+.page { max-width: 1320px; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 28px; margin: 0 0 6px; }
+.sub { color: var(--muted); margin: 0 0 24px; max-width: 85ch; }
+h2.ft { font: 600 13px var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 40px 0 10px; }
+h2.sec { font-size: 20px; margin: 44px 0 12px; }
+code { font: 13px var(--mono); background: var(--box); padding: 0 4px; border-radius: 3px; }
+
+/* ---------- TV frame: 1cqw inside the frame = 1vw on the real TV ---------- */
+.bezel { background: #111; padding: 10px; border-radius: 12px; }
+.tv { container-type: inline-size; aspect-ratio: 16 / 9; background: var(--paper); overflow: hidden; position: relative; }
+.screen { position: absolute; inset: 0; display: grid; grid-template-rows: 3.2cqw 5.6cqw 1fr; padding: 0 2cqw 1.4cqw; gap: 0; }
+.screen.title, .screen.compare { grid-template-rows: 3.2cqw 1fr; }
+.tv .t { font: 600 0.95cqw var(--mono); }
+.tv .s { font-size: 0.95cqw; color: var(--muted); }
+.b { position: relative; background: var(--box); border: 0.12cqw solid var(--line); border-radius: 0.5cqw; padding: 0.8cqw 1cqw; }
+.b.d { background: transparent; border-style: dashed; }
+.b.dark { background: var(--box2); }
+.bar { height: 0.55cqw; border-radius: 0.3cqw; background: var(--box2); margin-top: 0.55cqw; }
+.pin { position: absolute; width: 1.8cqw; height: 1.8cqw; border-radius: 50%; background: var(--pin); color: #fff;
+  font: 700 1cqw/1.8cqw var(--sans); text-align: center; z-index: 3; top: 0.4cqw; right: 0.4cqw; box-shadow: 0 0 0 0.25cqw var(--paper); }
+
+/* top bar */
+.topbar { display: flex; align-items: center; gap: 1cqw; border-bottom: 0.12cqw solid var(--line); margin: 0 -2cqw; padding: 0 2cqw 0 3cqw; position: relative; }
+.chip { font: 500 0.9cqw var(--mono); padding: 0.25cqw 0.9cqw; border-radius: 99cqw; border: 0.12cqw solid var(--line); white-space: nowrap; }
+.chip.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.keys { margin-left: auto; display: flex; gap: 0.6cqw; align-items: center; }
+kbd { font: 600 0.8cqw var(--mono); border: 0.12cqw solid var(--line); border-bottom-width: 0.3cqw; border-radius: 0.3cqw; padding: 0 0.45cqw; background: var(--paper); }
+
+/* title band */
+.titleband { display: flex; align-items: center; gap: 1.2cqw; position: relative; padding-left: 1cqw; }
+.badge { width: 3.6cqw; height: 3.6cqw; border-radius: 0.8cqw; background: var(--ink); color: var(--paper); display: grid; place-items: center; font: 700 2cqw var(--sans); flex: none; }
+.h2 { font: 700 2.4cqw/1.1 var(--sans); }
+.goal { font-size: 1.3cqw; color: var(--muted); }
+
+/* step main grid */
+.main { display: grid; grid-template-columns: 54fr 24fr 22fr; gap: 1.2cqw; min-height: 0; }
+.col { position: relative; display: flex; flex-direction: column; gap: 0.9cqw; min-height: 0; }
+.code { flex: 1; min-height: 0; background: var(--box2); border-radius: 0.6cqw; padding: 0.6cqw 1cqw; overflow: hidden; display: flex; flex-direction: column; }
+.code-head { display: flex; align-items: center; gap: 0.8cqw; padding-bottom: 0.5cqw; border-bottom: 0.12cqw solid var(--line); }
+.lines { flex: 1; overflow: hidden; }
+.ln { display: flex; align-items: center; height: 1.5cqw; border-left: 0.25cqw solid transparent; }
+.ln::before { content: attr(data-n); width: 2.6cqw; text-align: right; padding-right: 0.8cqw; font: 0.8cqw var(--mono); color: var(--muted); flex: none; }
+.ln i { display: block; height: 0.55cqw; border-radius: 0.3cqw; background: var(--line); opacity: .5; }
+.ln.hl { background: color-mix(in srgb, var(--hl) 22%, transparent); border-left-color: var(--hl); }
+.ln.hl i { background: var(--ink); opacity: .7; }
+.code.dim .ln:not(.hl) i { opacity: .2; }
+.scrollhint { font: 0.8cqw var(--mono); color: var(--muted); text-align: right; padding-top: 0.3cqw; }
+
+.view { border: 0.12cqw solid var(--line); border-radius: 0.5cqw; overflow: hidden; background: var(--paper); }
+.view .vb { height: 1.3cqw; background: var(--box); border-bottom: 0.12cqw solid var(--line); }
+.view .vc { display: flex; gap: 0.8cqw; padding: 0.8cqw; }
+.rect { width: 9cqw; height: 5.4cqw; border: 0.2cqw solid var(--ink); flex: none; }
+
+.layers { display: flex; flex-direction: column; flex: 1; justify-content: space-between; }
+.layer { padding: 0.5cqw 0.9cqw; display: grid; grid-template-columns: 6.4cqw 1fr; align-items: center; }
+.layer .rn { font: 600 0.75cqw var(--mono); color: var(--muted); text-transform: uppercase; }
+.layer .nm { font-size: 1.1cqw; font-weight: 600; line-height: 1.25; }
+.layer .lr { font: 0.8cqw var(--mono); color: var(--muted); }
+.layer.on { box-shadow: 0 0 0 0.3cqw var(--hl); }
+.arr { height: 1.2cqw; margin-left: 3cqw; border-left: 0.15cqw solid var(--line); }
+.pin.l { right: auto; left: 0.4cqw; }
+.pin.up { top: -0.9cqw; }
+.titleband > .pin { left: -1.7cqw; top: 50%; transform: translateY(-50%); }
+
+.note h4 { margin: 0 0 0.3cqw; font-size: 1.2cqw; }
+.note p { margin: 0; font-size: 1.05cqw; line-height: 1.4; color: var(--muted); }
+.note.try { border-color: var(--ink); }
+
+/* title screen */
+.hero { display: grid; grid-template-columns: 1.1fr 1fr; gap: 3cqw; align-items: center; padding: 0 2cqw; position: relative; }
+.h1 { font: 700 4.4cqw/1.05 var(--sans); }
+.lede { font-size: 1.6cqw; color: var(--muted); margin-top: 1.4cqw; line-height: 1.4; }
+.road { display: flex; flex-wrap: wrap; gap: 0.6cqw; align-items: center; margin-top: 2cqw; font-size: 1.3cqw; }
+.road .chip { font: 600 1.2cqw var(--sans); padding: 0.4cqw 1.1cqw; }
+.legend { display: flex; gap: 1.6cqw; margin-top: 1.4cqw; font-size: 1.1cqw; color: var(--muted); }
+.start { margin-top: 2.4cqw; font: 600 1.3cqw var(--sans); }
+.hero .view .vc { padding: 1.4cqw; gap: 1.2cqw; }
+.hero .rect { width: 15cqw; height: 9cqw; }
+
+/* compare screen */
+.cmp { display: grid; grid-template-rows: auto 1fr auto; gap: 1.2cqw; padding-top: 1.2cqw; min-height: 0; position: relative; }
+.matrix { display: grid; grid-template-columns: 13cqw repeat(4, 1fr); gap: 0.6cqw; }
+.matrix .h { font: 700 1.3cqw var(--sans); }
+.matrix .h small { display: block; font: 400 0.9cqw var(--sans); color: var(--muted); }
+.matrix .rl { font: 600 0.85cqw var(--mono); color: var(--muted); text-transform: uppercase; align-self: center; }
+.matrix .c { height: 2.6cqw; border: 0.12cqw solid var(--line); border-radius: 0.4cqw; background: var(--box); }
+.matrix .c.n { background: transparent; border-style: dashed; }
+.matrix .f { height: 2.2cqw; border-top: 0.12cqw solid var(--line); }
+.matrix .f::after { content: ""; display: block; margin-top: 0.8cqw; height: 0.55cqw; width: 60%; border-radius: 0.3cqw; background: var(--box2); }
+.three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2cqw; }
+
+/* code focus screen */
+.focus { display: grid; grid-template-columns: 1fr 17cqw; gap: 1.2cqw; min-height: 0; }
+.focus .ln { height: 2.3cqw; }
+.focus .ln::before { font-size: 1.2cqw; width: 3.6cqw; }
+.focus .ln i { height: 0.85cqw; }
+.mini-layers { display: flex; flex-direction: column; gap: 0.6cqw; }
+.mini-layers .b { padding: 0.5cqw 0.8cqw; font: 600 0.9cqw var(--mono); }
+.mini-layers .b.on { box-shadow: 0 0 0 0.3cqw var(--hl); }
+
+/* ---------- notes + spec ---------- */
+.notes-list { counter-reset: n; list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.notes-list li { position: relative; padding: 10px 12px 10px 46px; background: var(--paper); border: 1px solid var(--box2); border-radius: 8px; }
+.notes-list li::before { counter-increment: n; content: counter(n); position: absolute; left: 12px; top: 10px; width: 24px; height: 24px;
+  border-radius: 50%; background: var(--pin); color: #fff; font: 700 12px/24px var(--sans); text-align: center; }
+.notes-list b { display: block; }
+.tbl-wrap { overflow-x: auto; background: var(--paper); border: 1px solid var(--box2); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--box2); white-space: nowrap; }
+th { font: 600 12px var(--mono); text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+tr:last-child td { border-bottom: 0; }
+.cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.cols2 ul { margin: 0; padding-left: 20px; }
+.keylist { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; align-items: baseline; background: var(--paper); border: 1px solid var(--box2); border-radius: 8px; padding: 12px 14px; }
+.keylist kbd { font: 600 12px var(--mono); border: 1px solid var(--line); border-bottom-width: 3px; border-radius: 4px; padding: 0 6px; background: var(--paper); }
+@media (max-width: 820px) {
+  .cols2 { grid-template-columns: 1fr; }
+  .bezel { overflow-x: auto; }
+  .tv { min-width: 760px; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Wireframe: tutorial page on a 4K / 8K TV</h1>
+  <p class="sub">The target layout for showing the tutorial on a large 16:9 TV in a classroom. Each frame below is a true scaled-down screen: inside a frame, 1% of the frame width equals 1% of the TV width. The page works like a slide show, with one screen per step, so nobody has to scroll a long page from across the room. The current layout is in <code>design/wireframe.html</code>.</p>
+
+  <!-- ============ SCREEN A: title ============ -->
+  <h2 class="ft">Screen A · title</h2>
+  <div class="bezel"><div class="tv"><div class="screen title">
+    <div class="topbar">
+      <span class="pin l">1</span>
+      <span class="t">Vue → NiceGUI</span>
+      <span class="chip on">Start</span><span class="chip">1</span><span class="chip">2</span><span class="chip">3</span><span class="chip">4</span><span class="chip">5</span><span class="chip">6</span>
+      <span class="keys"><kbd>←</kbd><kbd>→</kbd><span class="s">step</span></span>
+    </div>
+    <div class="hero">
+      <span class="pin l">2</span>
+      <div>
+        <div class="s" style="font-size:1.1cqw">Frontend tutorial · Vue 3.5 · Quasar 2.35 · NiceGUI 4.0</div>
+        <div class="h1">Vue to NiceGUI,<br>layer by layer</div>
+        <div class="lede">One tiny page, built five different ways.<br>Watch which layers each way adds.</div>
+        <div class="road"><span class="chip">Your code</span>→<span class="chip">Server</span>→<span class="chip">Element tree</span>→<span class="chip">Renderer</span>→<span class="chip">Browser</span></div>
+        <div class="legend"><span>■ You write</span><span>■ Library</span><span>■ Browser result</span><span>▢ Not used</span></div>
+        <div class="start">Press <kbd>→</kbd> to start</div>
+      </div>
+      <div class="view"><div class="vb"></div><div class="vc"><div class="rect"></div><div class="rect"></div></div></div>
+    </div>
+  </div></div></div>
+
+  <!-- ============ SCREEN B: step overview ============ -->
+  <h2 class="ft">Screen B · one step (repeats for Steps 1 to 5)</h2>
+  <div class="bezel"><div class="tv"><div class="screen">
+    <div class="topbar">
+      <span class="t">Vue → NiceGUI</span>
+      <span class="chip">Start</span><span class="chip">1</span><span class="chip">2</span><span class="chip">3</span><span class="chip on">4 Mini NiceGUI</span><span class="chip">5</span><span class="chip">6</span>
+      <span class="keys"><kbd>L</kbd><span class="s">layer</span><kbd>Z</kbd><span class="s">zoom code</span><kbd>←</kbd><kbd>→</kbd><span class="s">step</span></span>
+    </div>
+    <div class="titleband">
+      <span class="pin">3</span>
+      <span class="badge">4</span>
+      <div><div class="h2">The NiceGUI road, built by hand</div><div class="goal">Python + FastAPI + uvicorn · step4_mini_nicegui.py</div></div>
+    </div>
+    <div class="main">
+      <div class="col">
+        <span class="pin up">4</span>
+        <div class="code dim">
+          <div class="code-head"><span class="t">step4_mini_nicegui.py</span><span class="s">Python</span><span class="s" style="margin-left:auto">lines 8–21 of 67</span></div>
+          <div class="lines" data-lines="26" data-start="6" data-hl="8-21"></div>
+          <div class="scrollhint">↓ more lines · panel scrolls to the active layer by itself</div>
+        </div>
+      </div>
+      <div class="col">
+        <span class="pin">5</span>
+        <div class="s">What the browser shows</div>
+        <div class="view"><div class="vb"></div><div class="vc"><div class="rect"></div><div class="rect"></div></div></div>
+        <div class="s">Layers</div>
+        <div class="layers">
+          <div class="b layer on"><span class="rn">Your code</span><span><span class="nm">Element tree in Python</span><br><span class="lr">lines 8–21, 28, 31–35</span></span></div>
+          <div class="arr"></div>
+          <div class="b layer"><span class="rn">Server</span><span><span class="nm">FastAPI route</span><br><span class="lr">lines 57–62, 65–67</span></span></div>
+          <div class="arr"></div>
+          <div class="b layer"><span class="rn">Tree</span><span><span class="nm">JSON in the page</span><br><span class="lr">lines 23–25, 47, 62</span></span></div>
+          <div class="arr"></div>
+          <div class="b layer"><span class="rn">Renderer</span><span><span class="nm">Vue h()</span><br><span class="lr">lines 45–50</span></span></div>
+          <div class="arr"></div>
+          <div class="b layer"><span class="rn">Browser</span><span><span class="nm">Browser DOM</span><br><span class="lr">see the view</span></span></div>
+        </div>
+      </div>
+      <div class="col">
+        <span class="pin">6</span>
+        <div class="b note" style="flex:1"><h4>What the code does</h4><p>Four short points, one or two lines each.</p><div class="bar"></div><div class="bar" style="width:80%"></div><div class="bar"></div><div class="bar" style="width:60%"></div></div>
+        <div class="b note"><h4>Run it</h4><div class="b dark" style="padding:0.4cqw 0.7cqw"><span class="t">python steps/step4_…py</span></div></div>
+        <div class="b note try"><h4>Try it</h4><p>One small change to make.</p></div>
+      </div>
+    </div>
+  </div></div></div>
+
+  <!-- ============ SCREEN C: code zoom ============ -->
+  <h2 class="ft">Screen C · code zoom (press Z on any step)</h2>
+  <div class="bezel"><div class="tv"><div class="screen">
+    <div class="topbar">
+      <span class="t">Vue → NiceGUI</span>
+      <span class="chip">Start</span><span class="chip">1</span><span class="chip">2</span><span class="chip">3</span><span class="chip on">4 Mini NiceGUI</span><span class="chip">5</span><span class="chip">6</span>
+      <span class="keys"><kbd>L</kbd><span class="s">next layer</span><kbd>Z</kbd><span class="s">back</span></span>
+    </div>
+    <div class="titleband"><span class="badge">4</span><div><div class="h2">The NiceGUI road, built by hand</div><div class="goal">Code zoom · layer "Your code"</div></div></div>
+    <div class="focus">
+      <div class="code dim" style="position:relative;overflow:visible">
+        <span class="pin up">7</span>
+        <div class="code-head"><span class="t" style="font-size:1.2cqw">step4_mini_nicegui.py</span><span class="s" style="margin-left:auto">lines 8–21 of 67</span></div>
+        <div class="lines" data-lines="18" data-start="6" data-hl="8-21" data-big="1"></div>
+      </div>
+      <div class="mini-layers">
+        <div class="s">Layers</div>
+        <div class="b on">Your code</div><div class="b">Server</div><div class="b">Tree</div><div class="b">Renderer</div><div class="b">Browser</div>
+        <div class="view" style="margin-top:auto"><div class="vb"></div><div class="vc" style="gap:0.4cqw;padding:0.5cqw"><div class="rect" style="width:7cqw;height:4.2cqw"></div><div class="rect" style="width:7cqw;height:4.2cqw"></div></div></div>
+      </div>
+    </div>
+  </div></div></div>
+
+  <!-- ============ SCREEN D: compare ============ -->
+  <h2 class="ft">Screen D · compare the roads</h2>
+  <div class="bezel"><div class="tv"><div class="screen compare">
+    <div class="topbar">
+      <span class="t">Vue → NiceGUI</span>
+      <span class="chip">Start</span><span class="chip">1</span><span class="chip">2</span><span class="chip">3</span><span class="chip">4</span><span class="chip">5</span><span class="chip on">6 Compare</span>
+      <span class="keys"><kbd>←</kbd><span class="s">back</span></span>
+    </div>
+    <div class="cmp">
+      <span class="pin">8</span>
+      <div class="titleband" style="padding-left:2.4cqw"><span class="badge">6</span><div><div class="h2">Compare the roads</div><div class="goal">Every road ends at the same browser DOM</div></div></div>
+      <div class="matrix">
+        <div></div><div class="h">Plain Vue<small>Steps 1–2</small></div><div class="h">NiceGUI<small>Step 3</small></div><div class="h">Hand-built<small>Step 4</small></div><div class="h">Vue + Quasar<small>Step 5</small></div>
+        <div class="rl">Your code</div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
+        <div class="rl">Server</div><div class="c n"></div><div class="c"></div><div class="c"></div><div class="c n"></div>
+        <div class="rl">Element tree</div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
+        <div class="rl">Renderer</div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
+        <div class="rl">Browser</div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
+        <div class="rl">You write</div><div class="f"></div><div class="f"></div><div class="f"></div><div class="f"></div>
+        <div class="rl">Needs to run</div><div class="f"></div><div class="f"></div><div class="f"></div><div class="f"></div>
+        <div class="rl">Live updates</div><div class="f"></div><div class="f"></div><div class="f"></div><div class="f"></div>
+        <div class="rl">Lines of code</div><div class="f"></div><div class="f"></div><div class="f"></div><div class="f"></div>
+      </div>
+      <div class="three">
+        <div class="b note"><h4>Every road has a tree</h4><div class="bar"></div></div>
+        <div class="b note"><h4>NiceGUI is Vue + Quasar…</h4><div class="bar"></div></div>
+        <div class="b note try"><h4>Next step to try</h4><div class="bar"></div></div>
+      </div>
+    </div>
+  </div></div></div>
+
+  <!-- ============ NOTES ============ -->
+  <h2 class="sec">Notes</h2>
+  <ol class="notes-list">
+    <li><b>Step bar</b>Always visible, about 3% of the screen height. Numbered chips jump straight to a screen. The key hints on the right change with the screen.</li>
+    <li><b>Title screen</b>The intro from the current page, made big: the H1 is 4.4% of the screen width. The hero view sits on the right. There is nothing to scroll.</li>
+    <li><b>Step title band</b>Number, title, stack and file name on one line. The goal sentence moves up here, so it never wraps under the code.</li>
+    <li><b>Code panel (54% of the width)</b>Shows about 26 lines. Most steps are longer (Steps 4 and 5 have 67 and 70 lines), so the panel scrolls the active layer's lines to the middle by itself. Lines wider than the panel wrap with a hanging indent. A remote cannot scroll sideways, so nothing may need horizontal scrolling.</li>
+    <li><b>View and layer stack (24%)</b>The browser view sits on top, and the five layers fill the rest of the height. The active layer has a thick yellow outline that can be seen from the back of the room. <kbd>L</kbd> moves to the next layer, and its lines light up in the code.</li>
+    <li><b>Notes column (22%)</b>"What the code does", "Run it" and "Try it", stacked. They are always on screen, so the teacher can talk through them without switching.</li>
+    <li><b>Code zoom</b>The code fills the screen at a larger size, about 18 lines. The layer list stays on the right, so <kbd>L</kbd> still works. Use it when the class needs to read the code itself.</li>
+    <li><b>Compare screen</b>At TV width the matrix fits without its own scroll bar, so the current 820 px minimum width and sideways scrolling go away. The takeaways become one row of three cards.</li>
+  </ol>
+
+  <h2 class="sec">Screen sizes</h2>
+  <p class="sub">A TV browser does not always report its full pixel count. 4K and 8K panels often run the browser with scaling, so the page sees a smaller CSS viewport. That is why every size in this layout uses one unit, <code>--u: min(1vw, 1.7778vh)</code>. It is 1% of the width on a 16:9 screen, and it shrinks to keep 16:9 when the window is taller or wider. The layout then looks the same on every row of this table.</p>
+  <div class="tbl-wrap"><table>
+    <tr><th>Panel</th><th>Physical pixels</th><th>OS / browser scale</th><th>CSS viewport the page sees</th><th>1 u in CSS px</th></tr>
+    <tr><td>4K UHD</td><td>3840 × 2160</td><td>100%</td><td>3840 × 2160</td><td>38.4</td></tr>
+    <tr><td>4K UHD</td><td>3840 × 2160</td><td>200% (common default)</td><td>1920 × 1080</td><td>19.2</td></tr>
+    <tr><td>8K UHD</td><td>7680 × 4320</td><td>200%</td><td>3840 × 2160</td><td>38.4</td></tr>
+    <tr><td>8K UHD</td><td>7680 × 4320</td><td>400%</td><td>1920 × 1080</td><td>19.2</td></tr>
+    <tr><td>Built-in TV browser</td><td>4K or 8K</td><td>set by the TV</td><td>often 1920 × 1080</td><td>19.2</td></tr>
+  </table></div>
+
+  <h2 class="sec">Type scale</h2>
+  <p class="sub">Sizes in <code>u</code>, with the letter height on two common TV sizes. A 65" 16:9 TV is about 1.44 m wide, and an 85" TV is about 1.88 m wide. Treat the code size as the floor. If the room is deep, use code zoom.</p>
+  <div class="tbl-wrap"><table>
+    <tr><th>Role</th><th>Size</th><th>px at 1920 wide</th><th>Font size on 65"</th><th>Font size on 85"</th></tr>
+    <tr><td>H1, title screen</td><td>4.4 u</td><td>84</td><td>63 mm</td><td>83 mm</td></tr>
+    <tr><td>H2, step title</td><td>2.4 u</td><td>46</td><td>35 mm</td><td>45 mm</td></tr>
+    <tr><td>Goal / lead text</td><td>1.3–1.6 u</td><td>25–31</td><td>19–23 mm</td><td>24–30 mm</td></tr>
+    <tr><td>Note text</td><td>1.05 u</td><td>20</td><td>15 mm</td><td>20 mm</td></tr>
+    <tr><td>Code</td><td>1.0 u (zoom: 1.5 u)</td><td>19 (29)</td><td>14 mm (22 mm)</td><td>19 mm (28 mm)</td></tr>
+    <tr><td>Small labels (row names, line refs)</td><td>0.75–0.8 u</td><td>14–15</td><td>11–12 mm</td><td>14–15 mm</td></tr>
+  </table></div>
+
+  <div class="cols2" style="margin-top:28px">
+    <div>
+      <h2 class="sec" style="margin-top:0">Controls</h2>
+      <div class="keylist">
+        <kbd>→</kbd><span>Next screen. <kbd>PageDown</kbd> and <kbd>Space</kbd> do the same, so a presenter clicker works.</span>
+        <kbd>←</kbd><span>Previous screen. <kbd>PageUp</kbd> does the same.</span>
+        <span><kbd>0</kbd>–<kbd>6</kbd></span><span>Jump to the title screen, a step, or the compare screen.</span>
+        <kbd>L</kbd><span>Next layer. <kbd>Shift</kbd> + <kbd>L</kbd> goes to the previous one. It lights up that layer's code lines.</span>
+        <kbd>Z</kbd><span>Code zoom on or off.</span>
+        <kbd>Esc</kbd><span>Clear the layer highlight.</span>
+      </div>
+    </div>
+    <div>
+      <h2 class="sec" style="margin-top:0">What changes from the current page</h2>
+      <ul>
+        <li>The 1280 px max width is removed. The layout fills the whole 16:9 screen.</li>
+        <li>The long scroll becomes six screens. Each section is <code>100vh</code> with scroll snap, so mouse scrolling still works.</li>
+        <li>All sizes use <code>u</code>, not fixed px.</li>
+        <li>Hover previews are dropped, because there is no hover from across a room. The keyboard drives the layers.</li>
+        <li>The browser mock is drawn in <code>u</code>, so its rectangles grow with the screen. The step files themselves are not changed.</li>
+        <li>Phones and laptops can keep today's scrolling layout below about 1600 px CSS width.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+// Fill code panels with fake lines: data-lines visible rows starting at data-start, data-hl = highlighted range.
+document.querySelectorAll('.lines').forEach(box => {
+  const n = +box.dataset.lines, start = +box.dataset.start;
+  const [a, z] = box.dataset.hl.split('-').map(Number);
+  const widths = [38, 62, 80, 54, 70, 46, 88, 30, 66, 74, 52, 0, 58, 84, 40, 72, 60, 34, 78, 50, 64, 0, 44, 70, 56, 82];
+  let html = '';
+  for (let i = 0; i < n; i++) {
+    const ln = start + i, w = widths[i % widths.length];
+    html += `<div class="ln${ln >= a && ln <= z ? ' hl' : ''}" data-n="${ln}">${w ? `<i style="width:${w}%"></i>` : ''}</div>`;
+  }
+  box.innerHTML = html;
+});
+</script>
+</body>
+</html>
