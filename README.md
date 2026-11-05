@@ -50,7 +50,8 @@ tutorial/build.py   generates docs/index.html; step texts and layer data live he
 tutorial/template.html   page layout, styles and script
 docs/index.html     the built tutorial (generated, committed for easy viewing)
 design/wireframe.html    current layout of docs/index.html, mapped to template.html and build.py
-design/wireframe-tv.html target layout for a 4K / 8K classroom TV (one screen per step)
+design/wireframe-tv.html earlier idea: one TV screen per step (replaced by wireframe-xref)
+design/wireframe-xref.html target layout: Quasar & NiceGUI & xxx side-by-side cross-reference, 4K / 8K TV
 ```
 
 ## Tested with

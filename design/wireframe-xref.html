@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cross-Reference Wireframe</title>
+<style>
+:root {
+  --bg: #f4f4f2; --paper: #ffffff; --ink: #222; --muted: #6b6b6b;
+  --box: #e8e8e5; --box2: #d4d4d0; --line: #9a9a95; --pin: #d9480f; --hl: #f0b444;
+  --qa: #dfe9fb; --qa-l: #6f8fd0;   /* column 1: Quasar */
+  --ng: #dcf1e6; --ng-l: #4f9e78;   /* column 2: NiceGUI */
+  --xx: #ecebe6; --xx-l: #8d8a80;   /* column 3: xxx */
+  --mono: ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161616; --paper: #1f1f1f; --ink: #e6e6e6; --muted: #a0a0a0;
+    --box: #2c2c2c; --box2: #3a3a3a; --line: #6a6a6a; --pin: #ff8a50;
+    --qa: #1f2a40; --qa-l: #7f9fe0; --ng: #183327; --ng-l: #62c296; --xx: #2a2925; --xx-l: #a8a598;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #161616; --paper: #1f1f1f; --ink: #e6e6e6; --muted: #a0a0a0;
+  --box: #2c2c2c; --box2: #3a3a3a; --line: #6a6a6a; --pin: #ff8a50;
+  --qa: #1f2a40; --qa-l: #7f9fe0; --ng: #183327; --ng-l: #62c296; --xx: #2a2925; --xx-l: #a8a598;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 var(--sans); }
+.page { max-width: 1320px; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 28px; margin: 0 0 6px; }
+.sub { color: var(--muted); margin: 0 0 22px; max-width: 88ch; }
+h2.ft { font: 600 13px var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 40px 0 10px; }
+h2.sec { font-size: 20px; margin: 44px 0 12px; }
+code { font: 13px var(--mono); background: var(--box); padding: 0 4px; border-radius: 3px; }
+
+/* ---------- TV frame: 1cqw inside = 1% of the TV width ---------- */
+.bezel { background: #111; padding: 10px; border-radius: 12px; }
+.tv { container-type: inline-size; background: var(--paper); position: relative; overflow: hidden; }
+.tv.one { aspect-ratio: 16 / 9; }
+.fold { position: absolute; left: 0; right: 0; border-top: 0.15cqw dashed var(--pin); z-index: 4; pointer-events: none; }
+.fold span { position: absolute; right: 0.6cqw; top: -1.5cqw; font: 600 0.8cqw var(--mono); color: var(--pin); background: var(--paper); padding: 0 0.4cqw; }
+.tv .t { font: 600 0.9cqw var(--mono); }
+.tv .s { font-size: 0.95cqw; color: var(--muted); }
+.b { position: relative; background: var(--box); border: 0.12cqw solid var(--line); border-radius: 0.5cqw; padding: 0.8cqw 1cqw; }
+.b.d { background: transparent; border-style: dashed; }
+.bar { height: 0.5cqw; border-radius: 0.3cqw; background: var(--box2); margin-top: 0.55cqw; }
+.pin { position: absolute; width: 1.8cqw; height: 1.8cqw; border-radius: 50%; background: var(--pin); color: #fff;
+  font: 700 1cqw/1.8cqw var(--sans); text-align: center; z-index: 5; top: -0.9cqw; right: 0.4cqw; box-shadow: 0 0 0 0.25cqw var(--paper); }
+.pin.l { right: auto; left: -0.9cqw; }
+
+/* shell */
+.topbar { height: 3.2cqw; display: flex; align-items: center; gap: 1cqw; padding: 0 1.6cqw; border-bottom: 0.12cqw solid var(--line); position: relative; }
+.brand { font: 700 1.05cqw var(--sans); }
+.toggle { font: 600 0.85cqw var(--mono); padding: 0.2cqw 0.8cqw; border-radius: 99cqw; border: 0.15cqw solid; display: inline-flex; gap: 0.4cqw; align-items: center; }
+.toggle.qa { background: var(--qa); border-color: var(--qa-l); }
+.toggle.ng { background: var(--ng); border-color: var(--ng-l); }
+.toggle.xx { background: var(--xx); border-color: var(--xx-l); }
+.keys { margin-left: auto; display: flex; gap: 0.5cqw; align-items: center; }
+kbd { font: 600 0.78cqw var(--mono); border: 0.12cqw solid var(--line); border-bottom-width: 0.3cqw; border-radius: 0.3cqw; padding: 0 0.4cqw; background: var(--paper); }
+.shell { display: grid; grid-template-columns: 14cqw 1fr; }
+.rail { border-right: 0.12cqw solid var(--line); padding: 1.2cqw 1cqw; display: flex; flex-direction: column; gap: 0.35cqw; position: relative; }
+.rail .h { font: 600 0.75cqw var(--mono); color: var(--muted); text-transform: uppercase; margin-top: 0.8cqw; }
+.rail a { font-size: 0.95cqw; color: var(--ink); text-decoration: none; padding: 0.15cqw 0.5cqw; border-radius: 0.3cqw; display: block; }
+.rail a.st { padding-left: 1.4cqw; color: var(--muted); font-size: 0.88cqw; }
+.rail a.on { background: var(--ink); color: var(--paper); }
+.content { padding: 1.6cqw 2cqw 2cqw; min-width: 0; }
+
+/* summary screen */
+.sumtop { display: grid; grid-template-columns: 1.25fr 1fr; gap: 2cqw; align-items: start; position: relative; }
+.h1 { font: 700 3.2cqw/1.08 var(--sans); }
+.h1 small { display: block; font: 600 1.5cqw var(--sans); color: var(--muted); margin-top: 0.5cqw; }
+.lede { font-size: 1.25cqw; color: var(--muted); margin-top: 1cqw; line-height: 1.45; }
+.pic { border: 0.12cqw solid var(--line); border-radius: 0.5cqw; overflow: hidden; background: var(--paper); position: relative; }
+.pic .pb { height: 1.2cqw; background: var(--box); border-bottom: 0.12cqw solid var(--line); }
+.pic .pc { display: flex; gap: 0.8cqw; padding: 1cqw; }
+.pic .x { flex: 1; aspect-ratio: 5 / 3; border: 0.2cqw solid var(--ink); }
+.cols3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1cqw; margin-top: 1.4cqw; position: relative; }
+.colcard { border-radius: 0.5cqw; padding: 0.7cqw 1cqw; border: 0.15cqw solid; }
+.colcard b { font-size: 1.15cqw; display: block; }
+.colcard span { font-size: 0.9cqw; color: var(--muted); }
+.qa { background: var(--qa); border-color: var(--qa-l); }
+.ng { background: var(--ng); border-color: var(--ng-l); }
+.xx { background: var(--xx); border-color: var(--xx-l); }
+.sumlow { display: grid; grid-template-columns: 1.25fr 1fr; gap: 2cqw; margin-top: 1.4cqw; }
+.xtab { width: 100%; border-collapse: collapse; font-size: 0.9cqw; position: relative; }
+.xtab th { font: 600 0.75cqw var(--mono); text-transform: uppercase; color: var(--muted); text-align: left; padding: 0.3cqw 0.5cqw; }
+.xtab td { padding: 0.35cqw 0.5cqw; border-top: 0.1cqw solid var(--box2); font-family: var(--mono); font-size: 0.82cqw; white-space: nowrap; }
+.xtab td:first-child { font-family: var(--sans); font-weight: 600; font-size: 0.9cqw; }
+.xtab td.go { color: var(--muted); font-family: var(--sans); }
+.secs { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7cqw; position: relative; align-content: start; }
+.seccard { padding: 0.6cqw 0.9cqw; }
+.seccard b { font-size: 1cqw; display: block; }
+.seccard span { font-size: 0.82cqw; color: var(--muted); }
+
+/* step */
+.seclabel { font: 600 0.9cqw var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.stephead { display: flex; align-items: center; gap: 1cqw; margin-top: 0.5cqw; position: relative; }
+.badge { padding: 0 0.8cqw; height: 3cqw; border-radius: 0.6cqw; background: var(--ink); color: var(--paper); display: grid; place-items: center; font: 700 1.4cqw var(--mono); }
+.h2 { font: 700 2.3cqw/1.1 var(--sans); }
+.intro { display: grid; grid-template-columns: 1.5fr 1fr; gap: 2cqw; margin-top: 1.2cqw; align-items: start; position: relative; }
+.intro p { margin: 0 0 0.7cqw; font-size: 1.2cqw; line-height: 1.45; }
+.intro p.m { color: var(--muted); }
+.figcap { font-size: 0.85cqw; color: var(--muted); margin-top: 0.4cqw; }
+.sbs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.2cqw; margin-top: 1.6cqw; position: relative; }
+.colhead { border-radius: 0.5cqw 0.5cqw 0 0; border: 0.15cqw solid; border-bottom: 0; padding: 0.5cqw 0.9cqw; display: flex; justify-content: space-between; align-items: baseline; }
+.colhead b { font-size: 1.15cqw; }
+.colhead span { font: 0.8cqw var(--mono); color: var(--muted); }
+.colnote { border-left: 0.15cqw solid; border-right: 0.15cqw solid; padding: 0.6cqw 0.9cqw; font-size: 1cqw; line-height: 1.4; background: var(--paper); }
+.code { background: #1a1d22; color: #d9dee6; border-radius: 0 0 0.5cqw 0.5cqw; padding: 0.6cqw 0; font: 0.92cqw/1.6 var(--mono); }
+.code .ln { display: flex; white-space: pre; border-left: 0.25cqw solid transparent; padding-right: 0.6cqw; min-height: 1.6em; }
+.code .ln .n { width: 2.4cqw; flex: none; text-align: right; padding-right: 0.7cqw; color: #6b7686; }
+.code .ln .tx { flex: 1; min-width: 0; white-space: pre-wrap; }
+.code .ln .mk { flex: none; margin-left: 0.2cqw; width: 1.5cqw; height: 1.5cqw; border-radius: 50%; background: #3a4352; color: #fff; font: 700 0.8cqw/1.5cqw var(--sans); text-align: center; align-self: center; }
+.code .ln.on { background: rgba(240, 180, 68, .22); border-left-color: var(--hl); }
+.code .ln.on .mk { background: var(--hl); color: #222; }
+.code.dim .ln:not(.on) .tx { opacity: .45; }
+.missing { border: 0.15cqw dashed var(--xx-l); border-top: 0; border-radius: 0 0 0.5cqw 0.5cqw; padding: 1.2cqw; text-align: center; font-size: 0.95cqw; color: var(--muted); }
+
+.shared { display: grid; grid-template-columns: 1fr 1.6fr; gap: 2cqw; margin-top: 1.8cqw; align-items: center; position: relative; }
+.shared h4, .xc h4 { margin: 0 0 0.4cqw; font-size: 1.3cqw; }
+.shared p { margin: 0; font-size: 1.05cqw; color: var(--muted); line-height: 1.45; }
+.chiprow { display: flex; gap: 0.5cqw; margin-top: 0.8cqw; flex-wrap: wrap; }
+.mini { font: 600 0.8cqw var(--mono); padding: 0.15cqw 0.6cqw; border-radius: 99cqw; border: 0.15cqw solid; }
+
+.xc { margin-top: 1.8cqw; position: relative; }
+.xrow { display: grid; grid-template-columns: 2.4cqw 1fr repeat(3, 13cqw); gap: 0.8cqw; align-items: center; padding: 0.6cqw 0.8cqw; border-top: 0.12cqw solid var(--box2); }
+.xrow.head { border-top: 0; font: 600 0.75cqw var(--mono); text-transform: uppercase; color: var(--muted); padding-top: 0; padding-bottom: 0.2cqw; }
+.xrow .mk { width: 1.9cqw; height: 1.9cqw; border-radius: 50%; background: var(--box2); font: 700 1cqw/1.9cqw var(--sans); text-align: center; }
+.xrow.on { background: rgba(240, 180, 68, .16); box-shadow: inset 0.3cqw 0 0 var(--hl); border-radius: 0.4cqw; }
+.xrow.on .mk { background: var(--hl); color: #222; }
+.xrow .say { font-size: 1.05cqw; line-height: 1.4; }
+.xrow .say b { font-weight: 600; }
+.xrow .ref { font: 0.82cqw var(--mono); padding: 0.25cqw 0.5cqw; border-radius: 0.3cqw; border: 0.12cqw solid; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stepfoot { display: flex; gap: 1cqw; margin-top: 1.8cqw; align-items: stretch; position: relative; }
+.stepfoot .b { flex: 1; }
+.stepfoot h4 { margin: 0 0 0.3cqw; font-size: 1.1cqw; }
+.stepfoot p { margin: 0; font-size: 1cqw; color: var(--muted); }
+.nav2 { display: flex; justify-content: space-between; margin-top: 1.4cqw; font-size: 1cqw; color: var(--muted); }
+
+/* ---------- notes + spec ---------- */
+.notes-list { counter-reset: n; list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.notes-list li { position: relative; padding: 10px 12px 10px 46px; background: var(--paper); border: 1px solid var(--box2); border-radius: 8px; }
+.notes-list li::before { counter-increment: n; content: counter(n); position: absolute; left: 12px; top: 10px; width: 24px; height: 24px;
+  border-radius: 50%; background: var(--pin); color: #fff; font: 700 12px/24px var(--sans); text-align: center; }
+.notes-list b { display: block; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid2 > * { min-width: 0; }
+.card { background: var(--paper); border: 1px solid var(--box2); border-radius: 8px; padding: 14px 16px; }
+.card ul { margin: 0; padding-left: 20px; }
+pre.tree { margin: 0; font: 13px/1.6 var(--mono); white-space: pre; overflow-x: auto; }
+.keylist { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; align-items: baseline; }
+.keylist kbd { font: 600 12px var(--mono); border: 1px solid var(--line); border-bottom-width: 3px; border-radius: 4px; padding: 0 6px; background: var(--paper); }
+@media (max-width: 860px) {
+  .grid2 { grid-template-columns: 1fr; }
+  .bezel { overflow-x: auto; }
+  .tv { min-width: 820px; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Wireframe: Quasar &amp; NiceGUI &amp; xxx, side-by-side cross-reference and tutorial</h1>
+  <p class="sub">The target layout for a 4K / 8K TV. The page is one long scroll: a summary at the top, then sections, and each section holds long steps. Every step shows the same idea written for each column side by side, with one shared screenshot and cross-comments that link matching lines across the columns. Inside a frame, 1% of the frame width equals 1% of the TV width. The dashed orange line marks where one TV screen ends.</p>
+
+  <!-- ===================== FRAME 1: top of page / summary ===================== -->
+  <h2 class="ft">Frame 1 · top of the page: summary (fits one screen)</h2>
+  <div class="bezel"><div class="tv one">
+    <div class="topbar">
+      <span class="pin l" style="top:0.7cqw;left:0.3cqw">1</span>
+      <span class="brand" style="margin-left:1.4cqw">Quasar &amp; NiceGUI &amp; xxx</span>
+      <span class="s">Columns:</span>
+      <span class="toggle qa">✓ Quasar</span><span class="toggle ng">✓ NiceGUI</span><span class="toggle xx">✓ xxx</span>
+      <span class="keys"><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><span class="s">columns</span><kbd>[</kbd><kbd>]</kbd><span class="s">step</span><kbd>C</kbd><span class="s">cross-comment</span></span>
+    </div>
+    <div class="shell">
+      <nav class="rail">
+        <span class="pin">2</span>
+        <a class="on">Summary</a>
+        <div class="h">Section 1 · Layout</div>
+        <a class="st">1.1 One empty box</a><a class="st">1.2 Two boxes side by side</a><a class="st">1.3 Spacing</a>
+        <div class="h">Section 2 · Under the hood</div>
+        <a class="st">2.1 The element tree</a><a class="st">2.2 Server to browser</a><a class="st">2.3 Build it by hand</a>
+        <div class="h">Section 3 · Events</div>
+        <a class="st">3.1 Click a box</a><a class="st">3.2 Update the page</a>
+        <div class="h">Section 4 · …</div>
+      </nav>
+      <div class="content">
+        <div class="sumtop">
+          <span class="pin">3</span>
+          <div>
+            <div class="h1">Quasar &amp; NiceGUI &amp; xxx<small>Side-by-side cross-reference and tutorial</small></div>
+            <div class="lede">Every step builds the same thing in each column. Read across a row to see how one idea is written in Quasar, in NiceGUI and in xxx. Numbered cross-comments link the matching lines.</div>
+          </div>
+          <div class="pic"><div class="pb"></div><div class="pc"><div class="x"></div><div class="x"></div></div></div>
+        </div>
+        <div class="cols3">
+          <span class="pin">4</span>
+          <div class="colcard qa"><b>Quasar</b><span>Vue 3 UI library · HTML + JS · Quasar 2.35</span></div>
+          <div class="colcard ng"><b>NiceGUI</b><span>Python on top of Vue + Quasar · NiceGUI 4.0</span></div>
+          <div class="colcard xx"><b>xxx</b><span>Third column (to be decided)</span></div>
+        </div>
+        <div class="sumlow">
+          <div style="position:relative">
+            <span class="pin">5</span>
+            <table class="xtab">
+              <tr><th>Idea</th><th>Quasar</th><th>NiceGUI</th><th>xxx</th><th></th></tr>
+              <tr><td>Row</td><td>&lt;div class="row"&gt;</td><td>ui.row()</td><td>…</td><td class="go">1.2 →</td></tr>
+              <tr><td>Box</td><td>&lt;div&gt;</td><td>ui.element('div')</td><td>…</td><td class="go">1.1 →</td></tr>
+              <tr><td>Gap</td><td>style="gap: 16px"</td><td>.style('gap: 16px')</td><td>…</td><td class="go">1.3 →</td></tr>
+              <tr><td>Start</td><td>.use(Quasar).mount()</td><td>ui.run()</td><td>…</td><td class="go">1.1 →</td></tr>
+              <tr><td>Click</td><td>@click="…"</td><td>.on('click', …)</td><td>…</td><td class="go">3.1 →</td></tr>
+            </table>
+          </div>
+          <div class="secs">
+            <span class="pin">6</span>
+            <div class="b seccard"><b>1 · Layout</b><span>3 steps</span></div>
+            <div class="b seccard"><b>2 · Under the hood</b><span>3 steps</span></div>
+            <div class="b seccard"><b>3 · Events</b><span>2 steps</span></div>
+            <div class="b d seccard"><b>4 · …</b><span>more later</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+
+  <!-- ===================== FRAME 2: one long step ===================== -->
+  <h2 class="ft">Frame 2 · one step, scrolled into view (almost 2 screens tall)</h2>
+  <div class="bezel"><div class="tv" id="stepframe">
+    <div class="fold" style="top:56.25cqw"><span>end of screen 1</span></div>
+    <div class="topbar">
+      <span class="brand">Quasar &amp; NiceGUI &amp; xxx</span>
+      <span class="s">Columns:</span>
+      <span class="toggle qa">✓ Quasar</span><span class="toggle ng">✓ NiceGUI</span><span class="toggle xx">✓ xxx</span>
+      <span class="keys"><kbd>C</kbd><span class="s">next cross-comment</span><kbd>[</kbd><kbd>]</kbd><span class="s">step</span></span>
+    </div>
+    <div class="shell">
+      <nav class="rail">
+        <a>Summary</a>
+        <div class="h">Section 1 · Layout</div>
+        <a class="st">1.1 One empty box</a><a class="st on">1.2 Two boxes side by side</a><a class="st">1.3 Spacing</a>
+        <div class="h">Section 2 · Under the hood</div>
+        <a class="st">2.1 The element tree</a><a class="st">2.2 Server to browser</a><a class="st">2.3 Build it by hand</a>
+        <div class="h">Section 3 · Events</div>
+        <a class="st">3.1 Click a box</a><a class="st">3.2 Update the page</a>
+        <div class="s" style="margin-top:auto">Rail stays put while the page scrolls</div>
+      </nav>
+      <div class="content">
+        <div class="seclabel">Section 1 · Layout</div>
+        <div class="stephead"><span class="pin">7</span><span class="badge">1.2</span><span class="h2">Two boxes side by side</span></div>
+
+        <div class="intro">
+          <span class="pin">8</span>
+          <div>
+            <p>Put two empty boxes in one row, with a 16 px gap between them.</p>
+            <p class="m">All three columns make a flex row. Quasar and NiceGUI use the same <b>row</b> class, because NiceGUI draws its page with Quasar. xxx writes the CSS by hand.</p>
+            <p class="m">Watch cross-comment ①: it is the same idea in three spellings.</p>
+          </div>
+          <div>
+            <div class="pic"><div class="pb"></div><div class="pc"><div class="x"></div><div class="x"></div></div></div>
+            <div class="figcap">One picture for the idea: a diagram, a sketch or the target result</div>
+          </div>
+        </div>
+
+        <div class="sbs">
+          <span class="pin">9</span>
+          <div>
+            <div class="colhead qa"><b>Quasar</b><span>step-1-2.html · 18 lines</span></div>
+            <div class="colnote" style="border-color:var(--qa-l)">The row is a plain div with Quasar's <b>row</b> class. The app starts when Quasar is installed into Vue.</div>
+            <div class="code dim" data-col="qa"></div>
+          </div>
+          <div>
+            <div class="colhead ng"><b>NiceGUI</b><span>step_1_2.py · 8 lines</span></div>
+            <div class="colnote" style="border-color:var(--ng-l)">A <b>with</b> block nests the boxes inside the row. No HTML and no JS.</div>
+            <div class="code dim" data-col="ng"></div>
+          </div>
+          <div>
+            <div class="colhead xx"><b>xxx</b><span>step-1-2.xxx · 16 lines</span></div>
+            <div class="colnote" style="border-color:var(--xx-l)">Same page in the third column. Here shown as plain Vue 3 with hand-written CSS.</div>
+            <div class="code dim" data-col="xx"></div>
+          </div>
+        </div>
+
+        <div class="shared">
+          <span class="pin">10</span>
+          <div>
+            <h4>Shared screenshot</h4>
+            <p>All three columns render this page. The screenshot is taken from the real files when the tutorial is built.</p>
+            <div class="chiprow"><span class="mini qa">Quasar ✓</span><span class="mini ng">NiceGUI ✓</span><span class="mini xx">xxx ✓</span><span class="mini" style="border-color:var(--line)">pixel diff: 0</span></div>
+          </div>
+          <div class="pic"><div class="pb"></div><div class="pc" style="padding:1.6cqw"><div class="x" style="flex:none;width:14cqw;aspect-ratio:auto;height:8.4cqw"></div><div class="x" style="flex:none;width:14cqw;aspect-ratio:auto;height:8.4cqw"></div></div></div>
+        </div>
+
+        <div class="xc">
+          <span class="pin">11</span>
+          <h4>Cross-comments</h4>
+          <div class="xrow head"><span></span><span>What matches</span><span>Quasar</span><span>NiceGUI</span><span>xxx</span></div>
+          <div class="xrow on"><span class="mk">1</span><span class="say"><b>The row.</b> A flex container that puts children side by side.</span><span class="ref qa">L5 · class="row"</span><span class="ref ng">L5 · ui.row()</span><span class="ref xx">L5, L11 · .row</span></div>
+          <div class="xrow"><span class="mk">2</span><span class="say"><b>The gap.</b> 16 px of space between the boxes.</span><span class="ref qa">L5 · style gap</span><span class="ref ng">L5 · .style(…)</span><span class="ref xx">L11 · gap: 16px</span></div>
+          <div class="xrow"><span class="mk">3</span><span class="say"><b>A box.</b> One empty div with a size and a border.</span><span class="ref qa">L6–7 · &lt;div&gt;</span><span class="ref ng">L6–7 · ui.element</span><span class="ref xx">L6–7 · .rect</span></div>
+          <div class="xrow"><span class="mk">4</span><span class="say"><b>Start the app.</b> Hand the page to the browser.</span><span class="ref qa">L17 · .use(Quasar)</span><span class="ref ng">L8 · ui.run()</span><span class="ref xx">L15 · mount()</span></div>
+        </div>
+
+        <div class="stepfoot">
+          <span class="pin">12</span>
+          <div class="b"><h4>Run it</h4><p>One line per column: open the HTML file, or run the Python file.</p></div>
+          <div class="b"><h4>Try it</h4><p>Change the gap to 40 px in every column. Do they still match?</p></div>
+        </div>
+        <div class="nav2"><span>← 1.1 One empty box</span><span>1.3 Spacing →</span></div>
+      </div>
+    </div>
+  </div></div>
+
+  <!-- ===================== NOTES ===================== -->
+  <h2 class="sec">Notes</h2>
+  <ol class="notes-list">
+    <li><b>Top bar</b>The name and the column toggles. Any column can be hidden. With two columns showing, each code block gets half the width and long lines wrap less. Keys: <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> toggle a column.</li>
+    <li><b>Left rail (14% wide)</b>Summary, then each section with its steps. It stays in place while the page scrolls and marks the step you are reading. Click to jump.</li>
+    <li><b>Summary: title and lead</b>The full name, "Quasar &amp; NiceGUI &amp; xxx: side-by-side cross-reference and tutorial", a short lead, and the target picture.</li>
+    <li><b>Column legend</b>One colour per column, used everywhere: column headers, code tabs, chips and cross-comment refs. Blue for Quasar, green for NiceGUI, grey for xxx.</li>
+    <li><b>Quick cross-reference table</b>The cheat sheet: one row per idea, one cell per column, and a link to the step that teaches it. It is built from the cross-comments of all steps, so it never goes out of date.</li>
+    <li><b>Section cards</b>Every section with its step count. Click to jump.</li>
+    <li><b>Step name</b>A number (section.step) and a short name. The section label sits above it.</li>
+    <li><b>Step intro: comment left, one picture right</b>Two or three short paragraphs about the idea. The picture is one image per step: a diagram, a sketch or the target result.</li>
+    <li><b>Side by side: comment + code per column</b>Each column has a coloured header (name, file, line count), one or two lines of comment, then the code. Code lines that a cross-comment points to carry its number in a circle. If a column has nothing for a step, it shows a dashed "Not in xxx" box instead of code.</li>
+    <li><b>Shared screenshot</b>One screenshot when all columns render the same page, with a chip per column and the pixel-diff result. When the results differ, it switches to one screenshot per column, lined up under the columns.</li>
+    <li><b>Cross-comments</b>One row per matching idea: a number, what matches, then a ref chip per column (line numbers and a short code hint). Select a row (hover, click or <kbd>C</kbd>) and its lines light up in every column at once. The other lines fade. This is the cross-reference at the heart of the page.</li>
+    <li><b>Step footer</b>"Run it" and "Try it", then links to the previous and next step.</li>
+  </ol>
+
+  <h2 class="sec">How a step is stored</h2>
+  <div class="grid2">
+    <div class="card">
+      <pre class="tree">content/
+  01-layout/
+    section.toml          name, order
+    02-two-boxes/
+      step.toml           name, intro, picture, cross-comments
+      picture.svg
+      quasar.html         column 1 (runs on its own)
+      nicegui.py          column 2 (runs on its own)
+      xxx.*               column 3 (optional)
+      shot.png            shared screenshot (made by the build)</pre>
+    </div>
+    <div class="card">
+      <ul>
+        <li>Each code file still runs on its own, as the project rules require.</li>
+        <li>Cross-comments point at code with text markers, the same way <code>find_range()</code> works today. For example, <code>nicegui = "ui.row()"</code> finds the line. The build fails if a marker no longer matches.</li>
+        <li>The build makes the screenshots in headless Chromium, compares the columns, and writes the pixel-diff chip.</li>
+        <li>The quick cross-reference table on the summary is collected from every <code>step.toml</code>.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2 class="sec">Sizing on 4K / 8K</h2>
+  <div class="grid2">
+    <div class="card">
+      <ul>
+        <li>All sizes use one unit, <code>u = min(1vw, 1.7778vh)</code>. 4K and 8K look the same at any OS scaling.</li>
+        <li>With three columns, each code block is about 26 u wide. At 0.92 u code that fits about 45 characters, so longer lines wrap with a hanging indent. With two columns it is about 41 u, or about 70 characters.</li>
+        <li>Code is 0.92 u: 18 px on a 1920 px wide viewport, about 13 mm tall on a 65" TV. Body text is 1.05 to 1.25 u.</li>
+        <li>Below about 1600 px CSS width, the columns turn into tabs and the rail folds into a menu.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="keylist">
+        <kbd>1</kbd><span>Show or hide the Quasar column. <kbd>2</kbd> is NiceGUI, <kbd>3</kbd> is xxx.</span>
+        <kbd>C</kbd><span>Next cross-comment. <kbd>Shift</kbd> + <kbd>C</kbd> goes back.</span>
+        <kbd>]</kbd><span>Next step. <kbd>[</kbd> goes back.</span>
+        <kbd>Esc</kbd><span>Clear the highlight.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Example code per column: [text, cross-comment number or 0]
+const CODE = {
+  qa: [
+    ['<div id="q-app">', 0],
+    ['  <q-layout view="hhh lpr fff">', 0],
+    ['    <q-page-container>', 0],
+    ['      <q-page padding>', 0],
+    ['        <div class="row" style="gap: 16px">', [1, 2]],
+    ['          <div :style="rect"></div>', 3],
+    ['          <div :style="rect"></div>', 3],
+    ['        </div>', 0],
+    ['      </q-page>', 0],
+    ['    </q-page-container>', 0],
+    ['  </q-layout>', 0],
+    ['</div>', 0],
+    ['<script type="module">', 0],
+    ["  import { createApp } from 'vue'", 0],
+    ['  const rect = { width: \'200px\', … }', 0],
+    ['  createApp({ setup: () => ({ rect }) })', 0],
+    ["    .use(Quasar).mount('#q-app')", 4],
+    ['<\/script>', 0],
+  ],
+  ng: [
+    ['from nicegui import ui', 0],
+    ['', 0],
+    ["RECT = 'width: 200px; height: 120px; …'", 0],
+    ['', 0],
+    ["with ui.row().style('gap: 16px'):", [1, 2]],
+    ["    ui.element('div').style(RECT)", 3],
+    ["    ui.element('div').style(RECT)", 3],
+    ['ui.run()', 4],
+  ],
+  xx: [
+    ['<style>', 0],
+    ['  .rect { width: 200px; height: 120px; … }', 0],
+    ['</style>', 0],
+    ['<div id="app">', 0],
+    ['  <div class="row">', 1],
+    ['    <div class="rect"></div>', 3],
+    ['    <div class="rect"></div>', 3],
+    ['  </div>', 0],
+    ['</div>', 0],
+    ['<style>', 0],
+    ['  .row { display: flex; gap: 16px }', [1, 2]],
+    ['</style>', 0],
+    ['<script type="module">', 0],
+    ["  import { createApp } from 'vue'", 0],
+    ["  createApp({}).mount('#app')", 4],
+    ['<\/script>', 0],
+  ],
+};
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+document.querySelectorAll('.code[data-col]').forEach(box => {
+  box.innerHTML = CODE[box.dataset.col].map(([tx, mk], i) => {
+    const marks = [].concat(mk || []);   // a line can carry several cross-comment numbers
+    const on = marks.includes(1);        // cross-comment 1 is the selected one in this wireframe
+    return `<div class="ln${on ? ' on' : ''}"><span class="n">${i + 1}</span><span class="tx">${esc(tx) || ' '}</span>${marks.map(m => `<span class="mk">${m}</span>`).join('')}</div>`;
+  }).join('');
+});
+</script>
+</body>
+</html>
