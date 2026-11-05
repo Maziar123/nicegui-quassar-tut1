@@ -4,6 +4,7 @@ Student tutorial: the same page (two empty 200×120 rectangles side by side, 16p
 
 ## Rules
 
+- `design/wireframe-tv.html` is the only wireframe. Follow it for any page layout work, and change it (not a new file) when the design changes. It targets a 4K / 8K TV: Quasar & NiceGUI & xxx side-by-side cross-reference and tutorial.
 - `docs/index.html` is generated. Never edit it by hand. Change `steps/*`, `tutorial/build.py` or `tutorial/template.html`, then run `python tutorial/build.py` and commit the regenerated page together with the source change.
 - Every file in `steps/` must stay runnable on its own. Test a change before committing:
   - HTML steps: open in headless Chrome and take a screenshot.
